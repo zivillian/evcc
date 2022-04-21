@@ -556,7 +556,7 @@ type decorateEVSEChargerExImpl struct {
 	chargerEx func(current float64) error
 }
 
-func (impl *decorateEVSEChargerExImpl) MaxCurrentMillis(current float64) error {
+func (impl *decorateEVSEChargerExImpl) MaxCurrentEx(current float64) (float64, error) {
 	return impl.chargerEx(current)
 }
 

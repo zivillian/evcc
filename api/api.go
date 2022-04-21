@@ -105,7 +105,7 @@ type Charger interface {
 
 // ChargerEx provides milli-amp precision charger current control
 type ChargerEx interface {
-	MaxCurrentMillis(current float64) error
+	MaxCurrentEx(current float64) (float64, error)
 }
 
 // ChargePhases provides 1p3p switching

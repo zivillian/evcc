@@ -2,6 +2,7 @@ package charger
 
 import (
 	"fmt"
+	"math"
 	"strings"
 	"sync"
 	"time"
@@ -134,18 +135,19 @@ func (wb *OpenWBPro) Enable(enable bool) error {
 
 // MaxCurrent implements the api.Charger interface
 func (wb *OpenWBPro) MaxCurrent(current int64) error {
-	return wb.MaxCurrentMillis(float64(current))
+	_, err := wb.MaxCurrentEx(float64(current))
+	return err
 }
 
 var _ api.ChargerEx = (*OpenWBPro)(nil)
 
 // MaxCurrentMillis implements the api.ChargerEx interface
-func (wb *OpenWBPro) MaxCurrentMillis(current float64) error {
+func (wb *OpenWBPro) MaxCurrentEx(current float64) (float64, error) {
 	err := wb.set(fmt.Sprintf("ampere=%.1f", current))
 	if err == nil {
 		wb.current = current
 	}
-	return err
+	return math.Round(10*current) / 10, err
 }
 
 var _ api.Meter = (*OpenWBPro)(nil)

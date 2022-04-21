@@ -188,21 +188,14 @@ func (wb *ABLeMH) Enable(enable bool) error {
 
 // MaxCurrent implements the api.Charger interface
 func (wb *ABLeMH) MaxCurrent(current int64) error {
-	if current < 6 {
-		return fmt.Errorf("invalid current %d", current)
-	}
-
-	return wb.MaxCurrentMillis(float64(current))
+	_, err := wb.MaxCurrentEx(float64(current))
+	return err
 }
 
 var _ api.ChargerEx = (*ABLeMH)(nil)
 
 // MaxCurrent implements the api.ChargerEx interface
-func (wb *ABLeMH) MaxCurrentMillis(current float64) error {
-	if current < 6 {
-		return fmt.Errorf("invalid current %.1f", current)
-	}
-
+func (wb *ABLeMH) MaxCurrentEx(current float64) (float64, error) {
 	// calculate duty cycle according to https://www.goingelectric.de/forum/viewtopic.php?p=1575287#p1575287
 	cur := uint16(current / 0.06)
 
@@ -211,7 +204,7 @@ func (wb *ABLeMH) MaxCurrentMillis(current float64) error {
 		wb.curr = cur
 	}
 
-	return err
+	return float64(cur), err
 }
 
 // currentPower implements the api.Meter interface

@@ -349,22 +349,23 @@ func (c *EEBus) writeCurrentLimitData(currents []float64) error {
 
 // MaxCurrent implements the api.Charger interface
 func (c *EEBus) MaxCurrent(current int64) error {
-	return c.MaxCurrentMillis(float64(current))
+	_, err := c.MaxCurrentEx(float64(current))
+	return err
 }
 
 var _ api.ChargerEx = (*EEBus)(nil)
 
 // MaxCurrentMillis implements the api.ChargerEx interface
-func (c *EEBus) MaxCurrentMillis(current float64) error {
+func (c *EEBus) MaxCurrentEx(current float64) (float64, error) {
 	data, err := c.cc.GetData()
 	if err != nil {
 		c.log.TRACE.Printf("!! currents: no eebus data available yet")
-		return err
+		return 0, err
 	}
 
 	if data.EVData.ChargeState == communication.EVChargeStateEnumTypeUnplugged {
 		c.log.TRACE.Printf("!! currents: ev reported as unplugged")
-		return errors.New("can't set new current as ev is unplugged")
+		return 0, errors.New("can't set new current as ev is unplugged")
 	}
 
 	if data.EVData.LimitsL1.Min == 0 {
@@ -388,7 +389,7 @@ func (c *EEBus) MaxCurrentMillis(current float64) error {
 	c.log.TRACE.Printf("!! currents: returning %f", current)
 
 	currents := []float64{current, current, current}
-	return c.writeCurrentLimitData(currents)
+	return current, c.writeCurrentLimitData(currents)
 }
 
 var _ api.Meter = (*EEBus)(nil)

@@ -252,7 +252,7 @@ type decorateWallbeChargerExImpl struct {
 	chargerEx func(current float64) error
 }
 
-func (impl *decorateWallbeChargerExImpl) MaxCurrentMillis(current float64) error {
+func (impl *decorateWallbeChargerExImpl) MaxCurrentEx(current float64) (float64, error) {
 	return impl.chargerEx(current)
 }
 

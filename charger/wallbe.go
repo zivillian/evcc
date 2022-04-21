@@ -41,7 +41,7 @@ func init() {
 	registry.Add("wallbe", NewWallbeFromConfig)
 }
 
-// go:generate go run ../cmd/tools/decorate.go -f decorateWallbe -b *Wallbe -r api.Charger -t "api.Meter,CurrentPower,func() (float64, error)" -t "api.MeterEnergy,TotalEnergy,func() (float64, error)" -t "api.MeterCurrent,Currents,func() (float64, float64, float64, error)" -t "api.ChargerEx,MaxCurrentMillis,func(current float64) error"
+// go:generate go run ../cmd/tools/decorate.go -f decorateWallbe -b *Wallbe -r api.Charger -t "api.Meter,CurrentPower,func() (float64, error)" -t "api.MeterEnergy,TotalEnergy,func() (float64, error)" -t "api.MeterCurrent,Currents,func() (float64, float64, float64, error)" -t "api.ChargerEx,MaxCurrentEx,func(current float64) error"
 
 // NewWallbeFromConfig creates a Wallbe charger from generic config
 func NewWallbeFromConfig(other map[string]interface{}) (api.Charger, error) {
@@ -83,12 +83,12 @@ func NewWallbeFromConfig(other map[string]interface{}) (api.Charger, error) {
 		currents = wb.currents
 	}
 
-	var maxCurrentMillis func(float64) error
+	var maxCurrentEx func(float64) (float64, error)
 	if !cc.Legacy {
-		maxCurrentMillis = wb.maxCurrentMillis
+		maxCurrentEx = wb.maxCurrentEx
 	}
 
-	return decorateWallbe(wb, currentPower, totalEnergy, currents, maxCurrentMillis), nil
+	return decorateWallbe(wb, currentPower, totalEnergy, currents, maxCurrentEx), nil
 }
 
 // NewWallbe creates a Wallbe charger
@@ -153,16 +153,12 @@ func (wb *Wallbe) MaxCurrent(current int64) error {
 	return err
 }
 
-// maxCurrentMillis implements the api.ChargerEx interface
-func (wb *Wallbe) maxCurrentMillis(current float64) error {
-	if current < 6 {
-		return fmt.Errorf("invalid current %.5g", current)
-	}
-
+// maxCurrentEx implements the api.ChargerEx interface
+func (wb *Wallbe) MaxCurrentEx(current float64) (float64, error) {
 	u := uint16(current * float64(wb.factor))
 	_, err := wb.conn.WriteSingleRegister(wbRegMaxCurrent, u)
 
-	return err
+	return current, err
 }
 
 var _ api.ChargeTimer = (*Wallbe)(nil)

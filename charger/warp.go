@@ -266,8 +266,8 @@ func (wb *Warp) MaxCurrent(current int64) error {
 var _ api.ChargerEx = (*Warp)(nil)
 
 // MaxCurrentMillis implements the api.ChargerEx interface
-func (wb *Warp) MaxCurrentMillis(current float64) error {
-	return wb.maxcurrentS(int64(1000 * current))
+func (wb *Warp) MaxCurrentEx(current float64) (float64, error) {
+	return current, wb.maxcurrentS(int64(1000 * current))
 }
 
 // CurrentPower implements the api.Meter interface

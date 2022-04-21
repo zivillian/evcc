@@ -179,13 +179,13 @@ func (wb *HeidelbergEC) MaxCurrent(current int64) error {
 		return fmt.Errorf("invalid current %d", current)
 	}
 
-	return wb.MaxCurrentMillis(float64(current))
+	_, err := wb.MaxCurrentEx(float64(current))
 }
 
 var _ api.ChargerEx = (*HeidelbergEC)(nil)
 
 // MaxCurrentMillis implements the api.ChargerEx interface
-func (wb *HeidelbergEC) MaxCurrentMillis(current float64) error {
+func (wb *HeidelbergEC) MaxCurrentEx(current float64) (float64, error) {
 	if current < 6 {
 		return fmt.Errorf("invalid current %.1f", current)
 	}
