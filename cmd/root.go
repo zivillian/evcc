@@ -197,9 +197,11 @@ func run(cmd *cobra.Command, args []string) {
 		go publisher.Run(site, pipe.NewDropper(ignoreMqtt...).Pipe(tee.Attach()))
 	}
 
+	cu := NewConfigUpdater(conf)
+
 	// create webserver
 	socketHub := server.NewSocketHub()
-	httpd := server.NewHTTPd(fmt.Sprintf(":%d", conf.Network.Port), site, socketHub, cache)
+	httpd := server.NewHTTPd(fmt.Sprintf(":%d", conf.Network.Port), site, socketHub, cache, cu)
 
 	// announce webserver on mDNS
 	if strings.HasSuffix(conf.Network.Host, ".local") {

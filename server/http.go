@@ -43,9 +43,12 @@ type HTTPd struct {
 
 // NewHTTPd creates HTTP server with configured routes for loadpoint
 func NewHTTPd(addr string, site site.API, hub *SocketHub, cache *util.Cache) *HTTPd {
+	fmt.Printf("cu.SponsorToken(): %v\n", cu.SponsorToken())
 	routes := map[string]route{
-		"health": {[]string{"GET"}, "/health", healthHandler(site)},
-		"state":  {[]string{"GET"}, "/state", stateHandler(cache)},
+		"health":             {[]string{"GET"}, "/health", healthHandler(site)},
+		"state":              {[]string{"GET"}, "/state", stateHandler(cache)},
+		"vehicleTemplates":   {[]string{"GET"}, "/config/vehicle-templates", vehicleTemplatesHandler()},
+		"configuredVehicles": {[]string{"GET"}, "/config/vehicles", configuredVehiclesHandler()},
 	}
 
 	router := mux.NewRouter().StrictSlash(true)

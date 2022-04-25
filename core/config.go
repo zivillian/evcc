@@ -7,4 +7,5 @@ type configProvider interface {
 	Meter(string) api.Meter
 	Charger(string) api.Charger
 	Vehicle(string) api.Vehicle
+	Vehicles() []api.Vehicle
 }
