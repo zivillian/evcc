@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/evcc-io/evcc/api"
 	"github.com/evcc-io/evcc/core/site"
 	"github.com/evcc-io/evcc/util"
 	"github.com/gorilla/handlers"
@@ -42,13 +43,14 @@ type HTTPd struct {
 }
 
 // NewHTTPd creates HTTP server with configured routes for loadpoint
-func NewHTTPd(addr string, site site.API, hub *SocketHub, cache *util.Cache) *HTTPd {
-	fmt.Printf("cu.SponsorToken(): %v\n", cu.SponsorToken())
+func NewHTTPd(addr string, site site.API, hub *SocketHub, cache *util.Cache, cu api.ConfigUpdater) *HTTPd {
 	routes := map[string]route{
-		"health":             {[]string{"GET"}, "/health", healthHandler(site)},
-		"state":              {[]string{"GET"}, "/state", stateHandler(cache)},
-		"vehicleTemplates":   {[]string{"GET"}, "/config/vehicle-templates", vehicleTemplatesHandler()},
-		"configuredVehicles": {[]string{"GET"}, "/config/vehicles", configuredVehiclesHandler()},
+		"health":           {[]string{"GET"}, "/health", healthHandler(site)},
+		"state":            {[]string{"GET"}, "/state", stateHandler(cache)},
+		"vehicleTemplates": {[]string{"GET"}, "/config/vehicle-templates", vehicleTemplatesHandler()},
+		"sponsorToken":     {[]string{"GET"}, "/config/sponsortoken", sponsorTokenHandler(cu)},
+		"siteTitle":        {[]string{"GET"}, "/config/site/title", siteTitleHandler(cu)},
+		"setSiteTitle":     {[]string{"PUT"}, "/config/site/title", setSiteTitleHandler(cu)},
 	}
 
 	router := mux.NewRouter().StrictSlash(true)

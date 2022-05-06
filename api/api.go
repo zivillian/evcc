@@ -25,6 +25,12 @@ const (
 	ModePV    ChargeMode = "pv"
 )
 
+type ConfigUpdater interface {
+	SponsorToken() string
+	SiteTitle() (string, error)
+	SetSiteTitle(string) error
+}
+
 // String implements Stringer
 func (c ChargeMode) String() string {
 	return string(c)

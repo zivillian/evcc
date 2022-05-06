@@ -5,6 +5,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/evcc-io/evcc/api"
 	"github.com/evcc-io/evcc/util/templates"
 )
 
@@ -62,10 +63,28 @@ func vehicleTemplatesHandler() http.HandlerFunc {
 	}
 }
 
-func configuredVehiclesHandler() http.HandlerFunc {
+func sponsorTokenHandler(cu api.ConfigUpdater) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		//log.ERROR.Println(cp.Vehicles())
+		w.WriteHeader(http.StatusOK)
+		jsonWrite(w, cu.SponsorToken())
+	}
+}
 
-		//jsonResult(w, cp.Vehicles())
+func siteTitleHandler(cu api.ConfigUpdater) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		title, err := cu.SiteTitle()
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte(err.Error()))
+		}
+		jsonWrite(w, title)
+	}
+}
+
+func setSiteTitleHandler(cu api.ConfigUpdater) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		jsonWrite(w, "Tadda!")
 	}
 }
