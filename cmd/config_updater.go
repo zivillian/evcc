@@ -28,6 +28,8 @@ func (cu configUpdater) SiteTitle() (string, error) {
 }
 
 func (cu configUpdater) SetSiteTitle(title string) error {
+	viper.Set("site.title", title)
+	viper.WriteConfigAs("/tmp/evcc.yaml")
 	return nil
 }
 

@@ -1,6 +1,7 @@
 package server
 
 import (
+	"io/ioutil"
 	"net/http"
 	"sort"
 	"strings"
@@ -84,6 +85,12 @@ func siteTitleHandler(cu api.ConfigUpdater) http.HandlerFunc {
 
 func setSiteTitleHandler(cu api.ConfigUpdater) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		newTitle, err := ioutil.ReadAll(r.Body)
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+		cu.SetSiteTitle(string(newTitle))
 		w.WriteHeader(http.StatusOK)
 		jsonWrite(w, "Tadda!")
 	}
