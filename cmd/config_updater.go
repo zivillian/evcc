@@ -19,7 +19,8 @@ func (cu configUpdater) SponsorToken() string {
 
 func (cu configUpdater) SiteTitle() (string, error) {
 	site := &struct {
-		Title string
+		Title  string
+		Meters []interface{}
 	}{}
 	if err := util.DecodeOther(cu.conf.Site, site); err != nil {
 		return "", err
@@ -29,7 +30,7 @@ func (cu configUpdater) SiteTitle() (string, error) {
 
 func (cu configUpdater) SetSiteTitle(title string) error {
 	viper.Set("site.title", title)
-	viper.WriteConfigAs("/tmp/evcc.yaml")
+	viper.WriteConfigAs("./evcc-new.yaml")
 	return nil
 }
 
