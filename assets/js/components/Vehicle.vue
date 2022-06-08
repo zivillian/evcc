@@ -9,21 +9,22 @@
 			@target-soc-drag="targetSocDrag"
 		/>
 		<div v-if="vehiclePresent">
-			<div class="d-flex flex-wrap justify-content-between">
+			<div class="details d-flex flex-wrap justify-content-between">
 				<LabelAndValue
-					class="flex-grow-1 text-start flex-basis-0"
+					class="flex-grow-1 text-start"
 					:label="$t('main.vehicle.vehicleSoC')"
 					:value="`${vehicleSoC || '--'} %`"
 					:extraValue="vehicleRange ? `${vehicleRange} km` : null"
+					on-dark
 				/>
-				<LabelAndValue
-					class="flex-grow-1 text-end text-sm-center flex-basis-0"
-					:label="$t('main.vehicle.targetSoC')"
-					:value="`${displayTargetSoC} %`"
-					:extraValue="estimatedTargetRange"
+				<TargetSoCSelect
+					class="flex-grow-1 text-center"
+					:target-soc="displayTargetSoC"
+					:range-per-soc="rangePerSoC"
+					@target-soc-updated="targetSocUpdated"
 				/>
 				<TargetCharge
-					class="flex-grow-1 text-sm-end target-charge flex-basis-0"
+					class="flex-grow-1 text-end target-charge"
 					v-bind="targetCharge"
 					:disabled="targetChargeDisabled"
 					@target-time-updated="setTargetTime"
@@ -44,10 +45,18 @@ import VehicleTitle from "./VehicleTitle.vue";
 import VehicleSoc from "./VehicleSoc.vue";
 import VehicleStatus from "./VehicleStatus.vue";
 import TargetCharge from "./TargetCharge.vue";
+import TargetSoCSelect from "./TargetSoCSelect.vue";
 
 export default {
 	name: "Vehicle",
-	components: { VehicleTitle, VehicleSoc, VehicleStatus, LabelAndValue, TargetCharge },
+	components: {
+		VehicleTitle,
+		VehicleSoc,
+		VehicleStatus,
+		LabelAndValue,
+		TargetCharge,
+		TargetSoCSelect,
+	},
 	mixins: [collector],
 	props: {
 		id: [String, Number],
@@ -70,6 +79,7 @@ export default {
 		pvRemainingInterpolated: Number,
 		parked: Boolean,
 	},
+	emits: ["target-time-removed", "target-time-updated", "target-soc-updated"],
 	data() {
 		return {
 			displayTargetSoC: this.targetSoC,
@@ -88,12 +98,9 @@ export default {
 		targetCharge: function () {
 			return this.collectProps(TargetCharge);
 		},
-		estimatedTargetRange: function () {
-			if (this.vehicleSoC > 10 && this.vehicleRange && this.displayTargetSoC) {
-				return (
-					Math.round(this.displayTargetSoC * (this.vehicleRange / this.vehicleSoC)) +
-					" km"
-				);
+		rangePerSoC: function () {
+			if (this.vehicleSoC > 10 && this.vehicleRange) {
+				return this.vehicleRange / this.vehicleSoC;
 			}
 			return null;
 		},
@@ -133,15 +140,8 @@ export default {
 .car-icon {
 	width: 1.75rem;
 }
-.flex-basis-0 {
+.details > div {
+	flex-grow: 1;
 	flex-basis: 0;
-}
-.target-charge {
-	min-width: 100%;
-}
-@media (min-width: 576px) {
-	.target-charge {
-		min-width: auto;
-	}
 }
 </style>

@@ -211,7 +211,7 @@ export default {
 }
 .visualization--ready .site-progress-bar {
 	transition-property: width;
-	transition-duration: 500ms;
+	transition-duration: var(--evcc-transition-medium);
 	transition-timing-function: linear;
 }
 .grid-import {
@@ -220,7 +220,7 @@ export default {
 }
 .self-consumption {
 	background-color: var(--evcc-self);
-	color: var(--bs-white);
+	color: var(--bs-dark);
 }
 .pv-export {
 	background-color: var(--evcc-export);
@@ -234,10 +234,10 @@ export default {
 }
 .visualization--ready ::v-deep(.label-bar) {
 	transition-property: width, opacity;
-	transition-duration: 500ms, 250ms;
+	transition-duration: var(--evcc-transition-medium), var(--evcc-transition-fast);
 	transition-timing-function: linear, ease;
 }
 .visualization--ready ::v-deep(.label-bar-icon) {
-	transition-duration: 100ms, 500ms;
+	transition-duration: var(--evcc-transition-very-fast), 500ms;
 }
 </style>

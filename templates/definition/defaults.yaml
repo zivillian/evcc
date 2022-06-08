@@ -196,7 +196,7 @@ params:
     valuetype: stringlist
   - name: standbypower
     description:
-      de: Standby-Leistung in W"
+      de: Standby-Leistung in W
       en: Standby power in W
     help:
       de: Leistung oberhalb des angegebenen Wertes wird als Ladeleistung gewertet
@@ -355,10 +355,14 @@ modbus:
 devicegroups:
   generic:
     de: Generische Unterstützung
-    en: generic support
+    en: Generic support
   switchsockets:
     de: Schaltbare Steckdosen
-    en: switchable sockets
+    en: Switchable sockets
+  scooter:
+    de: Scooter
+    en: Scooter
+  # TODO check if this is really used?
   sockets:
     de: Steckdosen
-    en: power sockets
+    en: Power sockets

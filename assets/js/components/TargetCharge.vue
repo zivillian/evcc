@@ -1,9 +1,9 @@
 <template>
 	<div>
-		<LabelAndValue class="flex-grow-1" :label="$t('main.targetCharge.title')">
+		<LabelAndValue class="flex-grow-1" :label="$t('main.targetCharge.title')" on-dark>
 			<button
-				class="btn btn-link p-0 value"
-				:class="buttonIsEnabled ? 'text-white' : 'text-gray'"
+				class="btn btn-link p-0 value text-end"
+				:class="buttonIsEnabled ? 'text-white' : 'text-gray-light'"
 				data-bs-toggle="modal"
 				:data-bs-target="`#${modalId}`"
 			>
@@ -134,6 +134,7 @@ export default {
 		targetSoC: Number,
 		disabled: Boolean,
 	},
+	emits: ["target-time-updated", "target-time-removed"],
 	data: function () {
 		return { selectedDay: null, selectedTime: null };
 	},
@@ -252,7 +253,7 @@ export default {
 	font-size: 18px;
 	line-height: 1.2;
 	border: none;
-	transition: color 500ms linear;
+	transition: color var(--evcc-transition-medium) linear;
 }
 .value:hover {
 	color: var(--bs-color-white);

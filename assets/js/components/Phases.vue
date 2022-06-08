@@ -1,9 +1,11 @@
 <template>
-	<div
-		class="phases d-flex flex-column justify-content-between"
-		:class="`active-phases-${activePhases}`"
-	>
-		<div v-for="num in [1, 2, 3]" :key="num" class="phase" :class="{ inactive: inactive(num) }">
+	<div class="phases d-flex justify-content-between">
+		<div
+			v-for="num in [1, 2, 3]"
+			:key="num"
+			class="phase me-1"
+			:class="{ inactive: inactive(num) }"
+		>
 			<div class="target" :style="{ width: `${targetWidth()}%` }"></div>
 			<div class="real" :style="{ width: `${realWidth(num)}%` }"></div>
 		</div>
@@ -15,32 +17,10 @@ export default {
 	name: "Phases",
 	props: {
 		chargeCurrent: { type: Number },
-		chargeCurrents: { type: Object },
+		chargeCurrents: { type: Array },
 		activePhases: { type: Number },
 		minCurrent: { type: Number },
 		maxCurrent: { type: Number },
-		phaseAction: { type: String },
-		phaseRemaining: { type: Number },
-	},
-	computed: {
-		phaseTimerVisible() {
-			if (this.phaseTimerActive && !this.pvTimerActive) {
-				return true;
-			}
-			if (this.phaseTimerActive && this.pvTimerActive) {
-				return this.phaseRemainingInterpolated < this.pvRemainingInterpolated; // only show next timer
-			}
-			return false;
-		},
-		pvTimerVisible() {
-			if (this.pvTimerActive && !this.phaseTimerActive) {
-				return true;
-			}
-			if (this.pvTimerActive && this.phaseTimerActive) {
-				return this.pvRemainingInterpolated < this.phaseRemainingInterpolated; // only show next timer
-			}
-			return false;
-		},
 	},
 	methods: {
 		inactive(num) {
@@ -63,13 +43,18 @@ export default {
 
 <style scoped>
 .phases {
-	height: 11px;
+	width: 73px;
 }
 .phase {
 	background-color: var(--bs-gray-200);
-	height: 3px;
-	width: 100%;
+	height: 4px;
+	flex-grow: 1;
 	position: relative;
+	border-radius: 1px;
+	overflow: hidden;
+}
+.phase.inactive {
+	display: none;
 }
 .target,
 .real {
@@ -78,7 +63,7 @@ export default {
 	top: 0;
 	bottom: 0;
 	transition-property: width, opacity;
-	transition-duration: 0.75s;
+	transition-duration: var(--evcc-transition-slow);
 	transition-timing-function: ease-in;
 	opacity: 1;
 }
@@ -87,9 +72,5 @@ export default {
 }
 .real {
 	background-color: var(--evcc-dark-green);
-}
-.phase.inactive .target,
-.phase.inactive .real {
-	opacity: 0;
 }
 </style>

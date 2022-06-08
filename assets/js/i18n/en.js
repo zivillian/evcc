@@ -26,10 +26,10 @@ export default {
     savings: {
       footerShort: "{percent}% solar",
       footerLong: "{percent}% solar energy",
-      modalTitleShort: "{total} kWh charged · {percent}% solar",
-      modalTitleLong: "{total} kWh charged · {percent}% solar energy",
-      modalChartGrid: "Grid energy {grid} kWh",
-      modalChartSelf: "Solar energy {self} kWh",
+      modalTitlePartOne: "{total} kWh charged",
+      modalTitlePartTwo: "{percent}% solar",
+      modalChartGrid: "Grid {grid} kWh",
+      modalChartSelf: "Solar {self} kWh",
       modalSavingsPrice: "Effective energy price",
       modalSavingsTotal: "Savings compared to grid",
       modalExplaination: "Calculation",
@@ -37,8 +37,6 @@ export default {
       modalExplainationFeedIn: "feed-in rate {feedInPrice}",
       modalServerStart: "since server start {since}.",
       modalNoData: "nothing charged yet",
-      experimentalLabel: "Experimental",
-      experimentalText: "Implausible values? Questions about this view? Feel free to join our ",
     },
     sponsor: {
       thanks: "Thanks for your support, {sponsor}! It helps us with the further development.",
@@ -93,7 +91,8 @@ export default {
       fallbackName: "Vehicle",
       vehicleSoC: "SoC",
       targetSoC: "Limit",
-      noVehicle: "No Vehicle",
+      none: "No vehicle",
+      unknown: "Guest vehicle",
     },
     vehicleSoC: {
       disconnected: "disconnected",
@@ -105,12 +104,12 @@ export default {
       minCharge: "minimum charging to {soc}%.",
       waitForVehicle: "Ready. Waiting for vehicle.",
       charging: "Charging.",
-      targetChargePlanned: "Target charge planned. Starting {start}.",
+      targetChargePlanned: "Target charge planned. Starting {time}.",
       targetChargeWaitForVehicle: "Target charge ready. Wait for vehicle.",
       targetChargeActive: "Target charge active.",
       connected: "Connected.",
       pvDisable: "Not enough surplus. Pausing in {remaining}.",
-      pvEnable: "Surplus available. Starging in {remaining}.",
+      pvEnable: "Surplus available. Starting in {remaining}.",
       scale1p: "Reduce to single phase in {remaining}.",
       scale3p: "Increase to three phase in {remaining}.",
       disconnected: "Disconnected.",
@@ -134,17 +133,17 @@ export default {
       activate: "Activate",
       experimentalLabel: "Experimental",
       experimentalText: `
-        This function is at an early stage.
-        The algorithm is not perfect yet.
-        The target time is currently not persisted - this means, it will be lost when your server restarts.
-        So do not rely too much on this function.
-        However, we look forward to your experiences and suggestions for improvement in the
+        This feature works but isn't perfect yet.
+        Please report unexpected behaviour in our
       `,
     },
   },
   config: {
-    errors: {
+    error: {
       loadingFailed: "Unable to load data.",
     },
+  offline: {
+    message: "No connection to server.",
+    reload: "Reload?",
   },
 };

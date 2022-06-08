@@ -29,24 +29,24 @@
 		</div>
 
 		<div class="details d-flex align-items-start mb-3">
-			<div class="d-flex align-items-center">
-				<div>
+			<div>
+				<div class="d-flex align-items-center">
 					<LabelAndValue
 						:label="$t('main.loadpoint.power')"
 						:value="fmtKw(chargePower)"
 						class="mb-2"
 					/>
-					<Phases
-						v-bind="phasesProps"
-						class="opacity-transiton"
+					<shopicon-regular-lightning
+						class="text-evcc opacity-transiton"
 						:class="`opacity-${charging ? '100' : '0'}`"
-					/>
+						size="m"
+					></shopicon-regular-lightning>
 				</div>
-				<shopicon-regular-lightning
-					class="text-evcc opacity-transiton"
+				<Phases
+					v-bind="phasesProps"
+					class="opacity-transiton"
 					:class="`opacity-${charging ? '100' : '0'}`"
-					size="m"
-				></shopicon-regular-lightning>
+				/>
 			</div>
 			<LabelAndValue :label="$t('main.loadpoint.charged')" :value="fmtKWh(chargedEnergy)" />
 			<LabelAndValue
@@ -202,8 +202,7 @@ export default {
 			api.post(this.apiPath("targetsoc") + "/" + soc);
 		},
 		setTargetTime: function (date) {
-			const formattedDate = `${this.fmtDayString(date)}T${this.fmtTimeString(date)}:00`;
-			api.post(this.apiPath("targetcharge") + "/" + this.targetSoC + "/" + formattedDate);
+			api.post(`${this.apiPath("targetcharge")}/${this.targetSoC}/${date.toISOString()}`);
 		},
 		removeTargetTime: function () {
 			api.delete(this.apiPath("targetcharge"));
@@ -229,6 +228,6 @@ export default {
 	text-align: right;
 }
 .opacity-transiton {
-	transition: opacity 0.75s ease-in;
+	transition: opacity var(--evcc-transition-slow) ease-in;
 }
 </style>
