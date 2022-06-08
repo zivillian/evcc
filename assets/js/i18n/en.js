@@ -142,6 +142,7 @@ export default {
     error: {
       loadingFailed: "Unable to load data.",
     },
+  },
   offline: {
     message: "No connection to server.",
     reload: "Reload?",
