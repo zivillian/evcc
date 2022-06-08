@@ -13,7 +13,7 @@ import api from "../../api";
 export default {
 	name: "Site",
 	data() {
-		return { form: {}, error: null };
+		return { form: { title: null }, error: null };
 	},
 	mounted() {
 		this.load();
@@ -21,14 +21,15 @@ export default {
 	methods: {
 		async load() {
 			try {
-				this.form = await api.get("config/site").data;
+				const response = await api.get("config/site/title");
+				this.form.title = response.data;
 			} catch (e) {
 				this.error = this.$t("config.error.loadingFailed");
 			}
 		},
 		async save() {
 			try {
-				await api.post("config/site", this.form);
+				await api.put("config/site/title", this.form.title);
 			} catch (e) {
 				this.error = this.$t("config.error.savingFailed");
 			}
