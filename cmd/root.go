@@ -18,9 +18,9 @@ import (
 	"github.com/evcc-io/evcc/util/pipe"
 	"github.com/evcc-io/evcc/util/request"
 	"github.com/evcc-io/evcc/util/sponsor"
+	"github.com/fsnotify/fsnotify"
 	"github.com/grandcat/zeroconf"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -147,6 +147,13 @@ func run(cmd *cobra.Command, args []string) {
 		log.ERROR.Println("missing evcc config - switching into demo mode")
 		demoConfig(&conf)
 	}
+
+	viper.OnConfigChange(func(e fsnotify.Event) {
+		if err := loadConfigFile(cfgFile, &conf); err != nil {
+			log.ERROR.Println("re-reading config failed")
+		}
+	})
+	viper.WatchConfig() // re-read config on change
 
 	util.LogLevel(viper.GetString("log"), viper.GetStringMapString("levels"))
 

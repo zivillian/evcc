@@ -28,7 +28,7 @@ const (
 type ConfigUpdater interface {
 	SponsorToken() string
 	SiteTitle() (string, error)
-	SetSiteTitle(string) error
+	SetSiteTitle(string)
 }
 
 // String implements Stringer

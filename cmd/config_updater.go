@@ -30,11 +30,14 @@ func (cu configUpdater) SiteTitle() (string, error) {
 	return site.Title, nil
 }
 
-func (cu configUpdater) SetSiteTitle(title string) error {
+func (cu configUpdater) SetSiteTitle(title string) {
 	cu.site.SetTitle(title)
 	viper.Set("site.title", title)
+	cu.writeConfig()
+}
+
+func (cu configUpdater) writeConfig() {
 	viper.WriteConfigAs("./evcc-new.yaml")
-	return nil
 }
 
 func NewConfigUpdater(conf config, site *core.Site) configUpdater {

@@ -1,7 +1,6 @@
 <template>
 	<form @submit.prevent="save">
-		<h2>Site</h2>
-		<label for="siteTitle">Titel</label>
+		<label for="siteTitle">Site Title</label>
 		<input id="siteTitle" v-model="form.title" type="text" />
 		<button type="submit">Speichern</button>
 	</form>
