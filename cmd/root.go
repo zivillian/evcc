@@ -197,7 +197,7 @@ func run(cmd *cobra.Command, args []string) {
 		go publisher.Run(site, pipe.NewDropper(ignoreMqtt...).Pipe(tee.Attach()))
 	}
 
-	cu := NewConfigUpdater(conf)
+	cu := NewConfigUpdater(conf, site)
 
 	// create webserver
 	socketHub := server.NewSocketHub()

@@ -432,6 +432,11 @@ func (site *Site) prepare() {
 	site.publish("savingsSince", site.savings.Since().Unix())
 }
 
+func (site *Site) SetTitle(title string) {
+	site.Title = title
+	site.publish("siteTitle", site.Title)
+}
+
 // Prepare attaches communication channels to site and loadpoints
 func (site *Site) Prepare(uiChan chan<- util.Param, pushChan chan<- push.Event) {
 	site.uiChan = uiChan

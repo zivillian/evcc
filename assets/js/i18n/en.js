@@ -1,5 +1,6 @@
 export default {
   header: {
+    config: "Configuration",
     docs: "Documentation",
     blog: "Blog",
     github: "GitHub",
@@ -139,6 +140,11 @@ export default {
         So do not rely too much on this function.
         However, we look forward to your experiences and suggestions for improvement in the
       `,
+    },
+  },
+  config: {
+    errors: {
+      loadingFailed: "Unable to load data.",
     },
   },
 };

@@ -3,12 +3,14 @@ package cmd
 import (
 	"fmt"
 
+	"github.com/evcc-io/evcc/core"
 	"github.com/evcc-io/evcc/util"
 	"github.com/spf13/viper"
 )
 
 type configUpdater struct {
 	conf config
+	site *core.Site
 }
 
 // Reads the Sponsortoken
@@ -29,13 +31,15 @@ func (cu configUpdater) SiteTitle() (string, error) {
 }
 
 func (cu configUpdater) SetSiteTitle(title string) error {
+	cu.site.SetTitle(title)
 	viper.Set("site.title", title)
 	viper.WriteConfigAs("./evcc-new.yaml")
 	return nil
 }
 
-func NewConfigUpdater(conf config) configUpdater {
+func NewConfigUpdater(conf config, site *core.Site) configUpdater {
 	return configUpdater{
 		conf: conf,
+		site: site,
 	}
 }
