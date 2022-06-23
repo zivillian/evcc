@@ -2,7 +2,6 @@ package charger
 
 import (
 	"fmt"
-	"net/http"
 	"strings"
 
 	"github.com/evcc-io/evcc/api"
@@ -186,8 +185,11 @@ func (wb *PCElectric) Enable(enable bool) error {
 		mode = "ALWAYS_ON"
 	}
 
+	// TODO headers
 	uri := fmt.Sprintf("%s/mode/%s", wb.uri, mode)
-	return wb.PostJSON(uri, nil, nil)
+	err := wb.PostJSON(uri, nil, nil)
+
+	return err
 }
 
 func (wb *PCElectric) MinCurrent(current int64) error {
@@ -199,11 +201,9 @@ func (wb *PCElectric) MinCurrent(current int64) error {
 		},
 	}
 
+	// TODO headers
 	uri := fmt.Sprintf("%s/mincurrentlimit", wb.uri)
-	req, err := request.New(http.MethodPost, uri, request.MarshalJSON(data), request.JSONEncoding)
-	if err == nil {
-		_, err = wb.DoBody(req)
-	}
+	err := wb.PostJSON(uri, request.MarshalJSON(data), nil)
 
 	return err
 }
@@ -230,10 +230,7 @@ func (wb *PCElectric) MaxCurrent(current int64) error {
 		}
 
 		uri := fmt.Sprintf("%s/currentlimit", wb.uri)
-		req, err := request.New(http.MethodPost, uri, request.MarshalJSON(data), request.JSONEncoding)
-		if err == nil {
-			_, err = wb.DoBody(req)
-		}
+		err := wb.PostJSON(uri, request.MarshalJSON(data), nil)
 
 		return err
 	}
@@ -247,11 +244,9 @@ func (wb *PCElectric) MaxCurrent(current int64) error {
 
 	data.LoadBalancingFuse = int(current)
 
+	// TODO headers
 	uri = fmt.Sprintf("%s/lbconfig", wb.uri)
-	req, err := request.New(http.MethodPost, uri, request.MarshalJSON(data), request.JSONEncoding)
-	if err == nil {
-		_, err = wb.DoBody(req)
-	}
+	err := wb.PostJSON(uri, request.MarshalJSON(data), nil)
 
 	return err
 }

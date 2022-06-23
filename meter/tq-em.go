@@ -3,7 +3,6 @@ package meter
 import (
 	"errors"
 	"fmt"
-	"net/http"
 	"net/http/cookiejar"
 	"net/url"
 	"strings"
@@ -103,12 +102,10 @@ func NewTqEmFromConfig(other map[string]interface{}) (api.Meter, error) {
 				"password": {cc.Password},
 			}
 
-			var req *http.Request
-			req, err = request.New(http.MethodPost, fmt.Sprintf("%s/start.php", base), strings.NewReader(data.Encode()), request.URLEncoding)
-
-			if err == nil {
-				_, err = client.DoBody(req)
-			}
+			uri := fmt.Sprintf("%s/start.php", base)
+			// TODO headers
+			// req, err = request.New(http.MethodPost,uri, strings.NewReader(data.Encode()), request.URLEncoding)
+			err = client.PostJSON(uri, strings.NewReader(data.Encode()), nil)
 
 			if err == nil {
 				err = client.GetJSON(uri, &res)
