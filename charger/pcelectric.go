@@ -187,12 +187,7 @@ func (wb *PCElectric) Enable(enable bool) error {
 	}
 
 	uri := fmt.Sprintf("%s/mode/%s", wb.uri, mode)
-	req, err := request.New(http.MethodPost, uri, nil, request.JSONEncoding)
-	if err == nil {
-		_, err = wb.DoBody(req)
-	}
-
-	return err
+	return wb.PostJSON(uri, nil, nil)
 }
 
 func (wb *PCElectric) MinCurrent(current int64) error {
