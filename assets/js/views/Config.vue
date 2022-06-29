@@ -1,28 +1,24 @@
 <template>
 	<div class="container px-4">
-		<header class="py-3 d-flex align-items-center justify-content-between">
-			<h1 class="my-0">Configuration</h1>
-			<router-link v-slot="{ navigate }" to="/" custom>
-				<button type="button" class="btn btn-sm btn-outline-secondary" @click="navigate">
-					<shopicon-regular-arrowback></shopicon-regular-arrowback>
-				</button>
-			</router-link>
+		<header class="py-3">
+			<h1 class="my-1">Configuration</h1>
 		</header>
 
-		<main>
-			<Site />
-		</main>
+		<div class="row">
+			<Navigation class="col-4" />
+			<main class="col-8">
+				<router-view />
+			</main>
+		</div>
 	</div>
 </template>
 
 <script>
-import "@h2d2/shopicons/es/regular/arrowback";
-
-import Site from "../components/Config/Site.vue";
+import Navigation from "../components/Config/Navigation.vue";
 
 export default {
 	name: "Config",
-	components: { Site },
+	components: { Navigation },
 	props: {
 		notifications: Array,
 	},

@@ -19,7 +19,7 @@
 		</button>
 		<ul class="dropdown-menu dropdown-menu-end">
 			<li>
-				<router-link class="dropdown-item" to="/config">
+				<router-link class="dropdown-item" to="/config/general">
 					{{ $t("header.config") }}
 				</router-link>
 			</li>

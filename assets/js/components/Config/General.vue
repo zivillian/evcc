@@ -1,16 +1,19 @@
 <template>
-	<form @submit.prevent="save">
-		<label for="siteTitle">Site Title</label>
-		<input id="siteTitle" v-model="form.title" type="text" />
-		<button type="submit">Speichern</button>
-	</form>
+	<main>
+		<h2 class="mb-4">Allgemein</h2>
+		<form @submit.prevent="save">
+			<label for="siteTitle">Site Title</label>
+			<input id="siteTitle" v-model="form.title" type="text" />
+			<button type="submit">Speichern</button>
+		</form>
+	</main>
 </template>
 
 <script>
 import api from "../../api";
 
 export default {
-	name: "Site",
+	name: "General",
 	data() {
 		return { form: { title: null }, error: null };
 	},
