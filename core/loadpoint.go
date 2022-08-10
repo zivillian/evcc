@@ -814,8 +814,6 @@ func (lp *LoadPoint) setActiveVehicle(vehicle api.Vehicle) {
 		return
 	}
 
-	lp.log.DEBUG.Printf("#4040 setActiveVehicle: %s", vehicle.Title()) // TODO remove
-
 	from := "unknown"
 	if lp.vehicle != nil {
 		coordinator.release(lp.vehicle)
