@@ -233,7 +233,7 @@ presets:
         advanced: true
         deprecated: true
     render: |
-      {{define "vehicle-base"}}
+      {{- define "vehicle-base"}}
       {{- if ne .title "" }}
       title: {{ .title }}
       {{- end }}
@@ -251,7 +251,7 @@ presets:
       {{- if ne .cache "" }}
       cache: {{ .cache }}
       {{- end }}
-      {{end}}
+      {{- end}}
   vehicleidentify:
     params:
       - name: mode
@@ -268,7 +268,7 @@ presets:
         advanced: true
         valuetype: stringlist
     render: |
-      {{define "vehicle-identify"}}
+      {{- define "vehicle-identify"}}
       {{- if or (ne .mode "") (ne .minSoC "") (ne .targetSoC "") (ne .minCurrent "") (ne .maxCurrent "") }}
       onIdentify:
       {{- if (ne .mode "") }}
@@ -293,23 +293,25 @@ presets:
       - {{ . }}
       {{-   end }}
       {{- end }}
-      {{end}}
+      {{- end}}
   vehiclelanguage:
     params:
       - name: language
     render: |
-      {{define "vehicle-language"}}
+      {{- define "vehicle-language"}}
       language: {{ .language }}
-      {{end}}
+      {{- end}}
 
   vehiclecloud:
     params:
       - name: cloud
-        advanced: true
+    advanced: true
     render: |
-      {{define "vehicle-cloud"}}
+      {{- define "vehicle-cloud"}}
+      {{- if (ne .cloud "true") }}
       cloud: {{ .cloud }}
-      {{end}}
+      {{- end}}
+      {{- end}}
 
 modbus:
   interfaces:

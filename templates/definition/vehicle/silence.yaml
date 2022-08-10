@@ -14,5 +14,5 @@ params:
   - preset: vehiclecloud
 render: |
   type: silence
-  {{ include "vehicle-base" . }}
-  {{ include "vehicle-cloud" . }}
+  {{- include "vehicle-base" . }}
+  {{- include "vehicle-cloud" . }}
