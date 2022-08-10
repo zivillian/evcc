@@ -491,7 +491,7 @@ func (lp *LoadPoint) evChargeCurrentWrappedMeterHandler(current float64) {
 
 // applyAction executes the action
 func (lp *LoadPoint) applyAction(actionCfg api.ActionConfig) {
-	lp.log.DEBUG.Println("#4040 applyAction") // TODO remove
+	lp.log.DEBUG.Printf("#4040 : %+v", actionCfg) // TODO remove
 
 	if actionCfg.Mode != nil {
 		lp.log.DEBUG.Printf("#4040 applyAction Mode: %+v", *actionCfg.Mode)
