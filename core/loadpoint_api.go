@@ -39,6 +39,8 @@ func (lp *LoadPoint) SetMode(mode api.ChargeMode) {
 
 	// apply immediately
 	if lp.Mode != mode {
+		lp.log.DEBUG.Printf("#4040 SetMode: %+v", mode)
+
 		lp.Mode = mode
 		lp.publish("mode", mode)
 
