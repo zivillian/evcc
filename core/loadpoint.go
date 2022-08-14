@@ -185,6 +185,17 @@ func NewLoadPointFromConfig(log *util.Logger, cp configProvider, other map[strin
 		}
 	}
 
+	// TODO deprecated loadpoint soc settings
+	// setting to 0 ensure that defaults are applied when switching vehicles
+	if lp.SoC.Min != 0 {
+		lp.SoC.Min = 0
+		lp.log.WARN.Printf("Loadpoint min soc setting is deprecated and will be removed. You can configure min soc at vehicle level.")
+	}
+	if lp.SoC.Target != 0 {
+		lp.SoC.Target = 0
+		lp.log.WARN.Printf("Loadpoint target soc setting is deprecated and will be removed. You can configure target soc at vehicle level.")
+	}
+
 	if lp.MinCurrent == 0 {
 		lp.log.WARN.Println("minCurrent must not be zero")
 	}
@@ -421,16 +432,15 @@ func (lp *LoadPoint) evVehicleDisconnectHandler() {
 	// remove charger vehicle id
 	lp.setVehicleIdentifier("")
 
+	// set default mode on disconnect
+	if lp.ResetOnDisconnect {
+		lp.applyAction(lp.onDisconnect, true)
+	}
+
 	// remove active vehicle if not default
 	if lp.vehicle != lp.defaultVehicle {
 		lp.setActiveVehicle(lp.defaultVehicle)
 		lp.unpublishVehicle()
-	}
-
-	// set default mode on disconnect
-	if lp.ResetOnDisconnect {
-		// TODO respect defaultVehicle
-		lp.applyAction(lp.onDisconnect)
 	}
 
 	// soc update reset
@@ -473,8 +483,8 @@ func (lp *LoadPoint) evChargeCurrentWrappedMeterHandler(current float64) {
 }
 
 // applyAction executes the action
-func (lp *LoadPoint) applyAction(actionCfg api.ActionConfig) {
-	if actionCfg.Mode != nil {
+func (lp *LoadPoint) applyAction(actionCfg api.ActionConfig, includeMode bool) {
+	if actionCfg.Mode != nil && includeMode {
 		lp.SetMode(*actionCfg.Mode)
 	}
 	if actionCfg.MinCurrent != nil {
@@ -797,6 +807,11 @@ func (lp *LoadPoint) setActiveVehicle(vehicle api.Vehicle) {
 	}
 	lp.log.INFO.Printf("vehicle updated: %s -> %s", from, to)
 
+	// establish defaults
+	lp.Unlock()
+	lp.applyAction(lp.onDisconnect, false)
+	lp.Lock()
+
 	if lp.vehicle = vehicle; vehicle != nil {
 		lp.socUpdated = time.Time{}
 
@@ -808,7 +823,7 @@ func (lp *LoadPoint) setActiveVehicle(vehicle api.Vehicle) {
 
 		// unblock api
 		lp.Unlock()
-		lp.applyAction(vehicle.OnIdentified())
+		lp.applyAction(vehicle.OnIdentified(), false) // TODO figure if mode can be updated (only when detected!)
 		lp.Lock()
 
 		lp.addTask(lp.vehicleOdometer)
