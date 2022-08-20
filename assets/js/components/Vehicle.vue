@@ -70,7 +70,7 @@ export default {
 		enabled: Boolean,
 		charging: Boolean,
 		minSoC: Number,
-		vehicleDetectionActive: Boolean,
+		// vehicleDetectionActive: Boolean,
 		vehicleRange: Number,
 		vehicleTitle: String,
 		targetTimeActive: Boolean,
