@@ -3,6 +3,7 @@ package meter
 import (
 	"errors"
 	"fmt"
+	"reflect"
 	"time"
 
 	"github.com/evcc-io/evcc/api"
@@ -28,17 +29,51 @@ func init() {
 
 //go:generate go run ../cmd/tools/decorate.go -f decorateModbus -b api.Meter -t "api.MeterEnergy,TotalEnergy,func() (float64, error)" -t "api.MeterCurrent,Currents,func() (float64, float64, float64, error)" -t "api.Battery,SoC,func() (float64, error)"
 
+type ValueDefinition struct {
+	Value string
+	Scale float64
+}
+
+var _ util.MapStructureUnmarshaler = (*ValueDefinition)(nil)
+
+func (v *ValueDefinition) UnmarshalMapStructure(f reflect.Type, data interface{}) error {
+	switch f.Kind() {
+	case reflect.String:
+		*v = ValueDefinition{Value: data.(string)}
+		return nil
+
+	case reflect.Map:
+		var cc struct {
+			Value string
+			Scale float64
+		}
+
+		err := util.DecodeOther(data, &cc)
+		if err == nil {
+			*v = ValueDefinition{
+				Value: cc.Value,
+				Scale: cc.Scale,
+			}
+		}
+
+		return err
+
+	default:
+		return fmt.Errorf("invalid kind: %s", f.Kind())
+	}
+}
+
 // NewModbusFromConfig creates api.Meter from config
 func NewModbusFromConfig(other map[string]interface{}) (api.Meter, error) {
 	cc := struct {
 		Model              string
 		modbus.Settings    `mapstructure:",squash"`
-		Power, Energy, SoC string
+		Power, Energy, SoC *ValueDefinition
 		Currents           []string
 		Delay              time.Duration
 		Timeout            time.Duration
 	}{
-		Power: "Power",
+		Power: &ValueDefinition{Value: "Power"},
 		Settings: modbus.Settings{
 			ID: 1,
 		},
@@ -93,16 +128,16 @@ func NewModbusFromConfig(other map[string]interface{}) (api.Meter, error) {
 		device: device,
 	}
 
-	cc.Power = modbus.ReadingName(cc.Power)
-	if err := modbus.ParseOperation(device, cc.Power, &m.opPower); err != nil {
+	cc.Power.Value = modbus.ReadingName(cc.Power.Value)
+	if err := modbus.ParseOperation(device, cc.Power.Value, &m.opPower); err != nil {
 		return nil, fmt.Errorf("invalid measurement for power: %s", cc.Power)
 	}
 
 	// decorate energy reading
 	var totalEnergy func() (float64, error)
-	if cc.Energy != "" {
-		cc.Energy = modbus.ReadingName(cc.Energy)
-		if err := modbus.ParseOperation(device, cc.Energy, &m.opEnergy); err != nil {
+	if cc.Energy != nil {
+		cc.Energy.Value = modbus.ReadingName(cc.Energy.Value)
+		if err := modbus.ParseOperation(device, cc.Energy.Value, &m.opEnergy); err != nil {
 			return nil, fmt.Errorf("invalid measurement for energy: %s", cc.Energy)
 		}
 
@@ -137,14 +172,14 @@ func NewModbusFromConfig(other map[string]interface{}) (api.Meter, error) {
 
 	// decorate soc reading
 	var soc func() (float64, error)
-	if cc.SoC != "" {
-		cc.SoC = modbus.ReadingName(cc.SoC)
-		if err := modbus.ParseOperation(device, cc.SoC, &m.opSoC); err != nil {
-			return nil, fmt.Errorf("invalid measurement for soc: %s", cc.SoC)
-		}
+	// if cc.SoC != "" {
+	// 	cc.SoC = modbus.ReadingName(cc.SoC)
+	// 	if err := modbus.ParseOperation(device, cc.SoC, &m.opSoC); err != nil {
+	// 		return nil, fmt.Errorf("invalid measurement for soc: %s", cc.SoC)
+	// 	}
 
-		soc = m.soc
-	}
+	// 	soc = m.soc
+	// }
 
 	return decorateModbus(m, totalEnergy, currentsG, soc), nil
 }
