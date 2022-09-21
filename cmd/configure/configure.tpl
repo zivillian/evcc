@@ -13,6 +13,12 @@ interval: 10s # control cycle interval
 
 sponsortoken: {{ .SponsorToken }}
 {{- end}}
+
+{{- if .Telemetry }}
+
+telemetry: {{ .Telemetry }}
+{{- end}}
+
 {{- if ne (len .Meters) 0 }}
 
 meters:

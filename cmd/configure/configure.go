@@ -42,6 +42,7 @@ type config struct {
 	EEBUS        string
 	MQTT         string
 	SponsorToken string
+	Telemetry    bool
 }
 
 type Configure struct {
