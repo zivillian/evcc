@@ -8,11 +8,13 @@ import (
 	"github.com/evcc-io/evcc/util"
 	"github.com/evcc-io/evcc/util/request"
 	"github.com/evcc-io/evcc/util/sponsor"
+	"github.com/panta/machineid"
 )
 
 var (
 	api     = "https://api.evcc.io"
 	Enabled bool
+	id      string
 )
 
 func Create(token string) error {
@@ -21,6 +23,11 @@ func Create(token string) error {
 	}
 
 	Enabled = true
+
+	if mid, err := machineid.ProtectedID("evcc-api"); err == nil {
+		id = mid
+	}
+
 	return nil
 }
 
