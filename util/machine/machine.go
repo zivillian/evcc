@@ -7,9 +7,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/evcc-io/evcc/util"
-
 	"github.com/denisbrodbeck/machineid"
+	"github.com/evcc-io/evcc/util"
 )
 
 var id string
@@ -30,16 +29,21 @@ func CustomID(cid string) error {
 	return nil
 }
 
+// RandomID creates a random, machine id compatible identifier
+func RandomID() string {
+	rnd := util.RandomString(512)
+	mac := hmac.New(sha256.New, []byte(rnd))
+	rid := hex.EncodeToString(mac.Sum(nil))
+	return rid
+}
+
 // ID returns the platform specific machine id of the current host OS.
 // If ID cannot be generated, a random value is suggested.
 func ID() (string, error) {
 	if id == "" {
 		var err error
 		if id, err = machineid.ID(); err != nil {
-			rnd := util.RandomString(512)
-			mac := hmac.New(sha256.New, []byte(rnd))
-			rid := hex.EncodeToString(mac.Sum(nil))
-
+			rid := RandomID()
 			return "", fmt.Errorf("could not get %w; for manual configuration use plant: %s", err, rid)
 		}
 	}
