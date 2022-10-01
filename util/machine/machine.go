@@ -33,8 +33,7 @@ func CustomID(cid string) error {
 func RandomID() string {
 	rnd := util.RandomString(512)
 	mac := hmac.New(sha256.New, []byte(rnd))
-	rid := hex.EncodeToString(mac.Sum(nil))
-	return rid
+	return hex.EncodeToString(mac.Sum(nil))
 }
 
 // ID returns the platform specific machine id of the current host OS.
