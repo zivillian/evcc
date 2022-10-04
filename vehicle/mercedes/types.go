@@ -9,4 +9,7 @@ type EVResponse struct {
 		Value     int64 `json:",string"`
 		Timestamp int64
 	}
+	ExveErrorId  string
+	ExveErrorMsg string
+	ExveErrorRef string
 }
