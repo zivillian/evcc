@@ -31,13 +31,27 @@ var _ vag.TokenExchanger = (*Service)(nil)
 
 type Service struct {
 	*request.Helper
-	data url.Values
+	data  url.Values
+	store vag.Storage
 }
 
-func New(log *util.Logger, q url.Values) *Service {
-	return &Service{
+func New(log *util.Logger, q url.Values, opt ...func(v *Service)) *Service {
+	v := &Service{
 		Helper: request.NewHelper(log),
 		data:   q,
+	}
+
+	for _, o := range opt {
+		o(v)
+	}
+
+	return v
+}
+
+// WithStorage is the storage option
+func WithStorage(store vag.Storage) func(v *Service) {
+	return func(v *Service) {
+		v.store = store
 	}
 }
 
@@ -114,5 +128,15 @@ func (v *Service) Refresh(token *vag.Token) (*vag.Token, error) {
 
 // TokenSource creates token source. Token is refreshed automatically.
 func (v *Service) TokenSource(token *vag.Token) vag.TokenSource {
+	if v.store != nil {
+		if token == nil {
+			if err := v.store.Load(&token); err != nil || token == nil {
+				return nil
+			}
+		} else {
+			v.store.Save(token)
+		}
+	}
+
 	return vag.RefreshTokenSource(token, v.Refresh)
 }

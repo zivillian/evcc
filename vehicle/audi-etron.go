@@ -56,7 +56,9 @@ func NewEtronFromConfig(other map[string]interface{}) (api.Vehicle, error) {
 	}
 
 	// exchange initial VW identity id_token for Audi AAZS token
-	idk := idkproxy.New(log, etron.IDKParams)
+	store := NewStore("audi.tokens.idk", cc.User, cc.Password)
+	idk := idkproxy.New(log, etron.IDKParams, idkproxy.WithStorage(store))
+
 	ats, its, err := service.AAZSTokenSource(log, idk, etron.AZSConfig, q)
 	if err != nil {
 		return nil, err

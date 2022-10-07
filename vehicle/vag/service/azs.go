@@ -12,12 +12,16 @@ import (
 // Once the AAZS token expires, it is recreated from the token exchanger (either TokenRefreshService or IDK).
 // Return values are the AAZS and token exchanger (TRS or IDK) token sources.
 func AAZSTokenSource(log *util.Logger, tox vag.TokenExchanger, azsConfig string, q url.Values) (vag.TokenSource, vag.TokenSource, error) {
-	token, err := tox.Exchange(q)
-	if err != nil {
-		return nil, nil, err
+	trs := tox.TokenSource(nil)
+	if trs == nil {
+		token, err := tox.Exchange(q)
+		if err != nil {
+			return nil, nil, err
+		}
+
+		trs = tox.TokenSource(token)
 	}
 
-	trs := tox.TokenSource(token)
 	azs := aazsproxy.New(log)
 
 	mts := vag.MetaTokenSource(func() (*vag.Token, error) {

@@ -24,11 +24,6 @@ type TokenExchanger interface {
 	TokenSource(token *Token) TokenSource
 }
 
-type StorableTokenExchanger interface {
-	TokenExchanger
-	WithStorage()
-}
-
 // TokenRefresher refreshes a token
 type TokenRefresher func(*Token) (*Token, error)
 
@@ -38,15 +33,22 @@ type tokenSource struct {
 	mu    sync.Mutex
 	token *Token
 	new   TokenRefresher
+	store Storage
 }
 
-func RefreshTokenSource(token *Token, refresher TokenRefresher) *tokenSource {
-	return &tokenSource{token: token, new: refresher}
+func RefreshTokenSource(token *Token, refresher TokenRefresher, opt ...func(v *tokenSource)) *tokenSource {
+	ts := &tokenSource{token: token, new: refresher}
+
+	for _, o := range opt {
+		o(ts)
+	}
+
+	return ts
 }
 
-// WithStorage() creates storable token source
-func (v *tokenSource) WithStorage() {
-	panic("TODO")
+// WithStorage() sets the storage option
+func (v *tokenSource) WithStorage(store Storage) {
+	v.store = store
 }
 
 // Token returns an oauth2 token or an error
@@ -72,6 +74,9 @@ func (ts *tokenSource) TokenEx() (*Token, error) {
 		var token *Token
 		if token, err = ts.new(ts.token); err == nil {
 			err = ts.mergeToken(token)
+		}
+		if err == nil && ts.store != nil {
+			err = ts.store.Save(token)
 		}
 	}
 
