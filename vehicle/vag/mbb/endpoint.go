@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"time"
 
 	"github.com/evcc-io/evcc/util"
 	"github.com/evcc-io/evcc/util/request"
@@ -22,6 +23,7 @@ var _ vag.TokenExchanger = (*Service)(nil)
 type Service struct {
 	*request.Helper
 	clientID string
+	store    vag.Storage
 }
 
 func New(log *util.Logger, clientID string) *Service {
@@ -29,6 +31,12 @@ func New(log *util.Logger, clientID string) *Service {
 		Helper:   request.NewHelper(log),
 		clientID: clientID,
 	}
+}
+
+// WithStore attaches a persistent store
+func (v *Service) WithStore(store vag.Storage) *Service {
+	v.store = store
+	return v
 }
 
 func (v *Service) Exchange(q url.Values) (*vag.Token, error) {
@@ -60,7 +68,7 @@ func (v *Service) Exchange(q url.Values) (*vag.Token, error) {
 	return &res, err
 }
 
-func (v *Service) Refresh(token *vag.Token) (*vag.Token, error) {
+func (v *Service) refresh(token *vag.Token) (*vag.Token, error) {
 	data := url.Values{
 		"grant_type":    {"refresh_token"},
 		"refresh_token": {token.RefreshToken},
@@ -77,10 +85,29 @@ func (v *Service) Refresh(token *vag.Token) (*vag.Token, error) {
 		err = v.DoJSON(req, &res)
 	}
 
+	// store refreshed token
+	if err == nil {
+		fmt.Println("mbb refresh remaining:", time.Until(res.Expiry))
+		err = v.store.Save(res)
+	}
+
 	return &res, err
 }
 
 // TokenSource creates token source. Token is refreshed automatically.
 func (v *Service) TokenSource(token *vag.Token) vag.TokenSource {
-	return vag.RefreshTokenSource(token, v.Refresh)
+	if v.store != nil {
+		if token == nil {
+			if err := v.store.Load(&token); err != nil || token == nil {
+				return nil
+			}
+			fmt.Println("mbb load remaining:", time.Until(token.Expiry))
+		} else {
+			// store initial token, typically from code exchange
+			fmt.Println("mbb store remaining:", time.Until(token.Expiry))
+			_ = v.store.Save(token)
+		}
+	}
+
+	return vag.RefreshTokenSource(token, v.refresh)
 }

@@ -4,6 +4,7 @@ import (
 	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/hex"
+	"fmt"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -35,23 +36,10 @@ type Service struct {
 	store vag.Storage
 }
 
-func New(log *util.Logger, q url.Values, opt ...func(v *Service)) *Service {
-	v := &Service{
+func New(log *util.Logger, q url.Values) *Service {
+	return &Service{
 		Helper: request.NewHelper(log),
 		data:   q,
-	}
-
-	for _, o := range opt {
-		o(v)
-	}
-
-	return v
-}
-
-// WithStorage is the storage option
-func WithStorage(store vag.Storage) func(v *Service) {
-	return func(v *Service) {
-		v.store = store
 	}
 }
 
@@ -71,6 +59,12 @@ func qmauth(ts int64) string {
 
 func qmauthNow() string {
 	return "v1:" + qmClientId + ":" + qmauth(time.Now().Unix()/100)
+}
+
+// WithStore attaches a persistent store
+func (v *Service) WithStore(store vag.Storage) *Service {
+	v.store = store
+	return v
 }
 
 // Exchange exchanges an VAG identity token for an IDK token
@@ -102,8 +96,8 @@ func (v *Service) Exchange(q url.Values) (*vag.Token, error) {
 	return &res, err
 }
 
-// Refresh refreshes an IDK token
-func (v *Service) Refresh(token *vag.Token) (*vag.Token, error) {
+// refresh refreshes an IDK token
+func (v *Service) refresh(token *vag.Token) (*vag.Token, error) {
 	data := url.Values{
 		"grant_type":    {"refresh_token"},
 		"response_type": {"token id_token"},
@@ -123,6 +117,12 @@ func (v *Service) Refresh(token *vag.Token) (*vag.Token, error) {
 		err = v.DoJSON(req, &res)
 	}
 
+	// store refreshed token
+	if err == nil {
+		fmt.Println("idk refresh remaining:", time.Until(res.Expiry))
+		err = v.store.Save(res)
+	}
+
 	return &res, err
 }
 
@@ -133,10 +133,13 @@ func (v *Service) TokenSource(token *vag.Token) vag.TokenSource {
 			if err := v.store.Load(&token); err != nil || token == nil {
 				return nil
 			}
+			fmt.Println("idk load remaining:", time.Until(token.Expiry))
 		} else {
-			v.store.Save(token)
+			fmt.Println("idk store remaining:", time.Until(token.Expiry))
+			// store initial token, typically from code exchange
+			_ = v.store.Save(token)
 		}
 	}
 
-	return vag.RefreshTokenSource(token, v.Refresh)
+	return vag.RefreshTokenSource(token, v.refresh)
 }

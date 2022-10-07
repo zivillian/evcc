@@ -11,7 +11,7 @@ import (
 
 // MbbTokenSource creates a refreshing token source for use with the MBB api.
 // Once the MBB token expires, it is recreated from the token exchanger (either TokenRefreshService or IDK)
-func MbbTokenSource(log *util.Logger, tox vag.TokenExchanger, clientID string, q url.Values, user, password string) (vag.TokenSource, error) {
+func MbbTokenSource(log *util.Logger, tox vag.TokenExchanger, mbb *mbb.Service, q url.Values, user, password string) (vag.TokenSource, error) {
 	trs := tox.TokenSource(nil)
 	if trs == nil {
 		q, err := vwidentity.Login(log, q, user, password)
@@ -27,19 +27,28 @@ func MbbTokenSource(log *util.Logger, tox vag.TokenExchanger, clientID string, q
 		trs = tox.TokenSource(token)
 	}
 
-	mbb := mbb.New(log, clientID)
-
 	mts := vag.MetaTokenSource(func() (*vag.Token, error) {
-		// get TRS token from refreshing TRS token source
-		itoken, err := trs.TokenEx()
-		if err != nil {
-			return nil, err
-		}
+		mbbts := mbb.TokenSource(nil)
 
-		// exchange TRS id_token for MBB token
-		mtoken, err := mbb.Exchange(url.Values{"id_token": {itoken.IDToken}})
-		if err != nil {
-			return nil, err
+		var (
+			mtoken *vag.Token
+			err    error
+		)
+
+		if mbbts != nil {
+			mtoken, err = mbbts.TokenEx()
+		} else {
+			// get TRS token from refreshing TRS token source
+			itoken, err := trs.TokenEx()
+			if err != nil {
+				return nil, err
+			}
+
+			// exchange TRS id_token for MBB token
+			mtoken, err = mbb.Exchange(url.Values{"id_token": {itoken.IDToken}})
+			if err != nil {
+				return nil, err
+			}
 		}
 
 		return mtoken, err

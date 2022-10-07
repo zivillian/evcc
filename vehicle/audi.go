@@ -8,6 +8,7 @@ import (
 	"github.com/evcc-io/evcc/util/request"
 	"github.com/evcc-io/evcc/vehicle/audi"
 	"github.com/evcc-io/evcc/vehicle/vag/idkproxy"
+	"github.com/evcc-io/evcc/vehicle/vag/mbb"
 	"github.com/evcc-io/evcc/vehicle/vag/service"
 	"github.com/evcc-io/evcc/vehicle/vw"
 )
@@ -47,10 +48,13 @@ func NewAudiFromConfig(other map[string]interface{}) (api.Vehicle, error) {
 
 	log := util.NewLogger("audi").Redact(cc.User, cc.Password, cc.VIN)
 
-	store := NewStore("audi.tokens.idk", cc.User, cc.Password)
-	idk := idkproxy.New(log, audi.IDKParams, idkproxy.WithStorage(store))
+	idkStore := NewStore("audi.tokens.idk", cc.User, cc.Password)
+	idk := idkproxy.New(log, audi.IDKParams).WithStore(idkStore)
 
-	ts, err := service.MbbTokenSource(log, idk, audi.AuthClientID, audi.AuthParams, cc.User, cc.Password)
+	mbbStore := NewStore("audi.tokens.mbb", cc.User, cc.Password)
+	mbb := mbb.New(log, audi.AuthClientID).WithStore(mbbStore)
+
+	ts, err := service.MbbTokenSource(log, idk, mbb, audi.AuthParams, cc.User, cc.Password)
 	if err != nil {
 		return nil, err
 	}

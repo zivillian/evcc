@@ -24,31 +24,26 @@ type TokenExchanger interface {
 	TokenSource(token *Token) TokenSource
 }
 
-// TokenRefresher refreshes a token
-type TokenRefresher func(*Token) (*Token, error)
+// TokenRefreshFunc refreshes a token
+type TokenRefreshFunc func(*Token) (*Token, error)
 
 var _ TokenSource = (*tokenSource)(nil)
 
 type tokenSource struct {
 	mu    sync.Mutex
 	token *Token
-	new   TokenRefresher
-	store Storage
+	new   TokenRefreshFunc
+	store Storage // TODO use or remove
 }
 
-func RefreshTokenSource(token *Token, refresher TokenRefresher, opt ...func(v *tokenSource)) *tokenSource {
-	ts := &tokenSource{token: token, new: refresher}
-
-	for _, o := range opt {
-		o(ts)
-	}
-
-	return ts
+func RefreshTokenSource(token *Token, refresher TokenRefreshFunc) *tokenSource {
+	return &tokenSource{token: token, new: refresher}
 }
 
-// WithStorage() sets the storage option
-func (v *tokenSource) WithStorage(store Storage) {
+// WithStore sets the storage option
+func (v *tokenSource) WithStore(store Storage) *tokenSource {
 	v.store = store
+	return v
 }
 
 // Token returns an oauth2 token or an error
