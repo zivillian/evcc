@@ -1,6 +1,7 @@
 package vag
 
 import (
+	"errors"
 	"net/url"
 	"sync"
 	"time"
@@ -23,6 +24,11 @@ type TokenExchanger interface {
 	TokenSource(token *Token) TokenSource
 }
 
+type StorableTokenExchanger interface {
+	TokenExchanger
+	WithStorage()
+}
+
 // TokenRefresher refreshes a token
 type TokenRefresher func(*Token) (*Token, error)
 
@@ -38,6 +44,11 @@ func RefreshTokenSource(token *Token, refresher TokenRefresher) *tokenSource {
 	return &tokenSource{token: token, new: refresher}
 }
 
+// WithStorage() creates storable token source
+func (v *tokenSource) WithStorage() {
+	panic("TODO")
+}
+
 // Token returns an oauth2 token or an error
 func (ts *tokenSource) Token() (*oauth2.Token, error) {
 	token, err := ts.TokenEx()
@@ -51,6 +62,10 @@ func (ts *tokenSource) Token() (*oauth2.Token, error) {
 func (ts *tokenSource) TokenEx() (*Token, error) {
 	ts.mu.Lock()
 	defer ts.mu.Unlock()
+
+	if ts.token == nil {
+		return nil, errors.New("token not initialized")
+	}
 
 	var err error
 	if time.Until(ts.token.Expiry) < time.Minute {

@@ -12,14 +12,17 @@ import (
 // MbbTokenSource creates a refreshing token source for use with the MBB api.
 // Once the MBB token expires, it is recreated from the token exchanger (either TokenRefreshService or IDK)
 func MbbTokenSource(log *util.Logger, tox vag.TokenExchanger, clientID string, q url.Values, user, password string) (vag.TokenSource, error) {
-	q, err := vwidentity.Login(log, q, user, password)
+	token, err := tox.TokenSource(nil).TokenEx()
 	if err != nil {
-		return nil, err
-	}
+		q, err := vwidentity.Login(log, q, user, password)
+		if err != nil {
+			return nil, err
+		}
 
-	token, err := tox.Exchange(q)
-	if err != nil {
-		return nil, err
+		token, err = tox.Exchange(q)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	trs := tox.TokenSource(token)
