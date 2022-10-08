@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"reflect"
 	"strings"
 	"time"
 
@@ -36,7 +37,9 @@ func New(log *util.Logger, q url.Values) *Service {
 
 // WithStore attaches a persistent store
 func (v *Service) WithStore(store vag.Storage) *Service {
-	v.store = store
+	if store != nil && !reflect.ValueOf(store).IsNil() {
+		v.store = store
+	}
 	return v
 }
 
@@ -78,7 +81,7 @@ func (v *Service) refresh(token *vag.Token) (*vag.Token, error) {
 	}
 
 	// store refreshed token
-	if err == nil {
+	if err == nil && v.store != nil {
 		fmt.Println("trs refresh remaining:", time.Until(res.Expiry))
 		err = v.store.Save(res)
 	}

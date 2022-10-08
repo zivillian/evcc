@@ -7,7 +7,7 @@ import (
 	"github.com/evcc-io/evcc/util"
 	"github.com/evcc-io/evcc/util/request"
 	"github.com/evcc-io/evcc/vehicle/vag/loginapps"
-	"github.com/evcc-io/evcc/vehicle/vag/vwidentity"
+	"github.com/evcc-io/evcc/vehicle/vag/service"
 	"github.com/evcc-io/evcc/vehicle/vw/id"
 )
 
@@ -45,18 +45,15 @@ func NewIDFromConfig(other map[string]interface{}) (api.Vehicle, error) {
 
 	log := util.NewLogger("id").Redact(cc.User, cc.Password, cc.VIN)
 
-	q, err := vwidentity.LoginWithAuthURL(log, id.LoginURL, id.AuthParams, cc.User, cc.Password)
+	appsStore := NewStore("vw.id.tokens.loginapps." + cc.User)
+	apps := loginapps.New(log).WithStore(appsStore)
+
+	ts, err := service.LoginAppsServiceTokenSource(log, apps, id.LoginURL, id.AuthParams, cc.User, cc.Password)
 	if err != nil {
 		return nil, err
 	}
 
-	apps := loginapps.New(log)
-	token, err := apps.Exchange(q)
-	if err != nil {
-		return nil, err
-	}
-
-	api := id.NewAPI(log, apps.TokenSource(token))
+	api := id.NewAPI(log, ts)
 	api.Client.Timeout = cc.Timeout
 
 	cc.VIN, err = ensureVehicle(cc.VIN, api.Vehicles)

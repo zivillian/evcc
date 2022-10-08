@@ -47,10 +47,10 @@ func NewVWFromConfig(other map[string]interface{}) (api.Vehicle, error) {
 
 	log := util.NewLogger("vw").Redact(cc.User, cc.Password, cc.VIN)
 
-	trsStore := NewStore("vw.tokens.trs", cc.User, cc.Password)
+	trsStore := NewStore("vw.tokens.trs." + cc.User)
 	trs := tokenrefreshservice.New(log, vw.TRSParams).WithStore(trsStore)
 
-	mbbStore := NewStore("vw.tokens.mbb", cc.User, cc.Password)
+	mbbStore := NewStore("vw.tokens.mbb." + cc.User)
 	mbb := mbb.New(log, vw.AuthClientID).WithStore(mbbStore)
 
 	ts, err := service.MbbTokenSource(log, trs, mbb, vw.AuthParams, cc.User, cc.Password)

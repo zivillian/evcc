@@ -8,9 +8,9 @@ import (
 	"github.com/evcc-io/evcc/util"
 	"github.com/evcc-io/evcc/util/request"
 	"github.com/evcc-io/evcc/vehicle/audi/etron"
+	"github.com/evcc-io/evcc/vehicle/vag/aazsproxy"
 	"github.com/evcc-io/evcc/vehicle/vag/idkproxy"
 	"github.com/evcc-io/evcc/vehicle/vag/service"
-	"github.com/evcc-io/evcc/vehicle/vag/vwidentity"
 	"github.com/evcc-io/evcc/vehicle/vw/id"
 )
 
@@ -49,17 +49,13 @@ func NewEtronFromConfig(other map[string]interface{}) (api.Vehicle, error) {
 
 	log := util.NewLogger("etron").Redact(cc.User, cc.Password, cc.VIN)
 
-	// get initial VW identity id_token
-	q, err := vwidentity.Login(log, etron.AuthParams, cc.User, cc.Password)
-	if err != nil {
-		return nil, err
-	}
+	idkStore := NewStore("audi.etron.tokens.idk." + cc.User)
+	idk := idkproxy.New(log, etron.IDKParams).WithStore(idkStore)
 
-	// exchange initial VW identity id_token for Audi AAZS token
-	store := NewStore("audi-etron.tokens.idk", cc.User, cc.Password)
-	idk := idkproxy.New(log, etron.IDKParams).WithStore(store)
+	azsStore := NewStore("audi.etron.tokens.azs." + cc.User)
+	azs := aazsproxy.New(log).WithStore(azsStore)
 
-	ats, its, err := service.AAZSTokenSource(log, idk, etron.AZSConfig, q)
+	ats, its, err := service.AAZSTokenSource(log, idk, azs, etron.AZSConfig, etron.AuthParams, cc.User, cc.Password)
 	if err != nil {
 		return nil, err
 	}

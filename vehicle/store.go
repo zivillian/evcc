@@ -1,10 +1,6 @@
 package vehicle
 
 import (
-	"crypto/hmac"
-	"crypto/sha256"
-	"encoding/hex"
-
 	"github.com/evcc-io/evcc/server/db/settings"
 )
 
@@ -12,22 +8,8 @@ type Store struct {
 	key string
 }
 
-func NewStore(key string, val ...string) *Store {
-	s := &Store{key: key}
-
-	if len(val) > 0 {
-		s.hash(val...)
-	}
-
-	return s
-}
-
-func (s *Store) hash(val ...string) {
-	mac := hmac.New(sha256.New, []byte(s.key))
-	for _, val := range val {
-		mac.Write([]byte(val))
-	}
-	s.key += "." + hex.EncodeToString(mac.Sum(nil))
+func NewStore(key string) *Store {
+	return &Store{key: key}
 }
 
 func (s *Store) Load(res any) error {

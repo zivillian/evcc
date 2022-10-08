@@ -1,7 +1,10 @@
 package aazsproxy
 
 import (
+	"fmt"
 	"net/http"
+	"reflect"
+	"time"
 
 	"github.com/evcc-io/evcc/util"
 	"github.com/evcc-io/evcc/util/request"
@@ -17,12 +20,21 @@ var Endpoint = &oauth2.Endpoint{
 
 type Service struct {
 	*request.Helper
+	store vag.Storage
 }
 
 func New(log *util.Logger) *Service {
 	return &Service{
 		Helper: request.NewHelper(log),
 	}
+}
+
+// WithStore attaches a persistent store
+func (v *Service) WithStore(store vag.Storage) *Service {
+	if store != nil && !reflect.ValueOf(store).IsNil() {
+		v.store = store
+	}
+	return v
 }
 
 // Exchange exchanges an VAG identity or IDK token for an AAZS token
@@ -51,5 +63,18 @@ func (v *Service) Exchange(config, token string) (*vag.Token, error) {
 
 // TokenSource creates token source. Token is NOT refreshed but will expire.
 func (v *Service) TokenSource(token *vag.Token) vag.TokenSource {
+	if v.store != nil {
+		if token == nil {
+			if err := v.store.Load(&token); err != nil || token == nil {
+				return nil
+			}
+			fmt.Println("azs load remaining:", time.Until(token.Expiry))
+		} else {
+			fmt.Println("azs store remaining:", time.Until(token.Expiry))
+			// store initial token, typically from code exchange
+			_ = v.store.Save(token)
+		}
+	}
+
 	return vag.RefreshTokenSource(token, nil)
 }

@@ -66,6 +66,12 @@ func (ts *tokenSource) TokenEx() (*Token, error) {
 
 	var err error
 	if time.Until(ts.token.Expiry) < time.Minute {
+		if ts.new == nil {
+			// this token source does not refresh
+			// TODO used with AAZS, find out why
+			return nil, errors.New("token source is not refreshable")
+		}
+
 		var token *Token
 		if token, err = ts.new(ts.token); err == nil {
 			err = ts.mergeToken(token)

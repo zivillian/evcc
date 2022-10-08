@@ -47,11 +47,11 @@ func SetString(key string, val string) {
 
 	if idx < 0 {
 		settings = append(settings, setting{key, val})
-	} else {
+		atomic.StoreInt32(&dirty, 1)
+	} else if settings[idx].Value != val {
 		settings[idx].Value = val
+		atomic.StoreInt32(&dirty, 1)
 	}
-
-	atomic.StoreInt32(&dirty, 1)
 }
 
 func SetInt(key string, val int64) {

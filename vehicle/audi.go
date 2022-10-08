@@ -48,10 +48,10 @@ func NewAudiFromConfig(other map[string]interface{}) (api.Vehicle, error) {
 
 	log := util.NewLogger("audi").Redact(cc.User, cc.Password, cc.VIN)
 
-	idkStore := NewStore("audi.tokens.idk", cc.User, cc.Password)
+	idkStore := NewStore("audi.tokens.idk." + cc.User)
 	idk := idkproxy.New(log, audi.IDKParams).WithStore(idkStore)
 
-	mbbStore := NewStore("audi.tokens.mbb", cc.User, cc.Password)
+	mbbStore := NewStore("audi.tokens.mbb." + cc.User)
 	mbb := mbb.New(log, audi.AuthClientID).WithStore(mbbStore)
 
 	ts, err := service.MbbTokenSource(log, idk, mbb, audi.AuthParams, cc.User, cc.Password)

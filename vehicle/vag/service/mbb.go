@@ -28,17 +28,17 @@ func MbbTokenSource(log *util.Logger, tox vag.TokenExchanger, mbb *mbb.Service, 
 	}
 
 	mts := vag.MetaTokenSource(func() (*vag.Token, error) {
-		mbbts := mbb.TokenSource(nil)
-
 		var (
 			mtoken *vag.Token
 			err    error
 		)
 
-		if mbbts != nil {
-			mtoken, err = mbbts.TokenEx()
-		} else {
-			// get TRS token from refreshing TRS token source
+		if ts := mbb.TokenSource(nil); ts != nil {
+			mtoken, err = ts.TokenEx()
+		}
+
+		if mtoken == nil || err != nil {
+			// get new id token from refreshing TRS token source
 			itoken, err := trs.TokenEx()
 			if err != nil {
 				return nil, err
@@ -51,7 +51,7 @@ func MbbTokenSource(log *util.Logger, tox vag.TokenExchanger, mbb *mbb.Service, 
 			}
 		}
 
-		return mtoken, err
+		return mtoken, nil
 
 		// produce tokens from refresh MBB token source
 	}, mbb.TokenSource)

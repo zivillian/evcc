@@ -1,13 +1,17 @@
 package loginapps
 
 import (
+	"fmt"
 	"net/http"
 	"net/url"
+	"reflect"
+	"time"
 
 	"github.com/evcc-io/evcc/util"
 	"github.com/evcc-io/evcc/util/oauth"
 	"github.com/evcc-io/evcc/util/request"
 	"github.com/evcc-io/evcc/util/urlvalues"
+	"github.com/evcc-io/evcc/vehicle/vag"
 	"golang.org/x/oauth2"
 )
 
@@ -22,12 +26,21 @@ var Endpoint = &oauth2.Endpoint{
 
 type Service struct {
 	*request.Helper
+	store vag.Storage
 }
 
 func New(log *util.Logger) *Service {
 	return &Service{
 		Helper: request.NewHelper(log),
 	}
+}
+
+// WithStore attaches a persistent store
+func (v *Service) WithStore(store vag.Storage) *Service {
+	if store != nil && !reflect.ValueOf(store).IsNil() {
+		v.store = store
+	}
+	return v
 }
 
 func (v *Service) Exchange(q url.Values) (*Token, error) {
@@ -54,7 +67,7 @@ func (v *Service) Exchange(q url.Values) (*Token, error) {
 	return &res, err
 }
 
-func (v *Service) Refresh(token *Token) (*Token, error) {
+func (v *Service) refresh(token *Token) (*Token, error) {
 	req, err := request.New(http.MethodGet, Endpoint.TokenURL, nil, map[string]string{
 		"Accept":        "application/json",
 		"Authorization": "Bearer " + token.RefreshToken,
@@ -65,16 +78,35 @@ func (v *Service) Refresh(token *Token) (*Token, error) {
 		err = v.DoJSON(req, &res)
 	}
 
+	// store refreshed token
+	if err == nil && v.store != nil {
+		fmt.Println("loginapps refresh remaining:", time.Until(res.Expiry))
+		err = v.store.Save(res)
+	}
+
 	return &res, err
 }
 
 // RefreshToken implements oauth.TokenRefresher
 func (v *Service) RefreshToken(token *oauth2.Token) (*oauth2.Token, error) {
-	res, err := v.Refresh((*Token)(token))
+	res, err := v.refresh((*Token)(token))
 	return (*oauth2.Token)(res), err
 }
 
 // TokenSource creates a refreshing oauth2 token source
 func (v *Service) TokenSource(token *Token) oauth2.TokenSource {
+	if v.store != nil {
+		if token == nil {
+			if err := v.store.Load(&token); err != nil || token == nil {
+				return nil
+			}
+			fmt.Println("loginapps load remaining:", time.Until(token.Expiry))
+		} else {
+			fmt.Println("loginapps store remaining:", time.Until(token.Expiry))
+			// store initial token, typically from code exchange
+			_ = v.store.Save(token)
+		}
+	}
+
 	return oauth.RefreshTokenSource((*oauth2.Token)(token), v)
 }

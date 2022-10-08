@@ -48,9 +48,10 @@ func NewSkodaFromConfig(other map[string]interface{}) (api.Vehicle, error) {
 
 	log := util.NewLogger("skoda").Redact(cc.User, cc.Password, cc.VIN)
 
-	trs := tokenrefreshservice.New(log, skoda.TRSParams)
+	trsStore := NewStore("skoda.tokens.trs." + cc.User)
+	trs := tokenrefreshservice.New(log, skoda.TRSParams).WithStore(trsStore)
 
-	mbbStore := NewStore("skoda.tokens.mbb", cc.User, cc.Password)
+	mbbStore := NewStore("skoda.tokens.mbb." + cc.User)
 	mbb := mbb.New(log, skoda.AuthClientID).WithStore(mbbStore)
 
 	ts, err := service.MbbTokenSource(log, trs, mbb, skoda.AuthParams, cc.User, cc.Password)

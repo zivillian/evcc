@@ -12,8 +12,8 @@ type Token oauth2.Token
 
 func (t *Token) UnmarshalJSON(data []byte) error {
 	var s struct {
-		AccessToken  string
-		RefreshToken string
+		AccessToken  string `json:"access_token"`
+		RefreshToken string `json:"refresh_token"`
 	}
 
 	err := json.Unmarshal(data, &s)

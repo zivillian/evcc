@@ -48,9 +48,10 @@ func NewSeatFromConfig(other map[string]interface{}) (api.Vehicle, error) {
 
 	log := util.NewLogger("seat").Redact(cc.User, cc.Password, cc.VIN)
 
-	trs := tokenrefreshservice.New(log, seat.TRSParams)
+	trsStore := NewStore("seat.tokens.trs." + cc.User)
+	trs := tokenrefreshservice.New(log, seat.TRSParams).WithStore(trsStore)
 
-	mbbStore := NewStore("seat.tokens.mbb", cc.User, cc.Password)
+	mbbStore := NewStore("seat.tokens.mbb." + cc.User)
 	mbb := mbb.New(log, seat.AuthClientID).WithStore(mbbStore)
 
 	ts, err := service.MbbTokenSource(log, trs, mbb, seat.AuthParams, cc.User, cc.Password)
