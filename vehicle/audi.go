@@ -1,9 +1,11 @@
 package vehicle
 
 import (
+	"context"
 	"time"
 
 	"github.com/evcc-io/evcc/api"
+	"github.com/evcc-io/evcc/api/store"
 	"github.com/evcc-io/evcc/util"
 	"github.com/evcc-io/evcc/util/request"
 	"github.com/evcc-io/evcc/vehicle/audi"
@@ -27,7 +29,7 @@ func init() {
 }
 
 // NewAudiFromConfig creates a new vehicle
-func NewAudiFromConfig(other map[string]interface{}) (api.Vehicle, error) {
+func NewAudiFromConfig(ctx context.Context, other map[string]interface{}) (api.Vehicle, error) {
 	cc := struct {
 		embed               `mapstructure:",squash"`
 		User, Password, VIN string
@@ -48,10 +50,10 @@ func NewAudiFromConfig(other map[string]interface{}) (api.Vehicle, error) {
 
 	log := util.NewLogger("audi").Redact(cc.User, cc.Password, cc.VIN)
 
-	idkStore := NewStore("audi.tokens.idk." + cc.User)
+	idkStore := ctx.Value(store.Key).(store.Provider)("audi.tokens.idk." + cc.User)
 	idk := idkproxy.New(log, audi.IDKParams).WithStore(idkStore)
 
-	mbbStore := NewStore("audi.tokens.mbb." + cc.User)
+	mbbStore := ctx.Value(store.Key).(store.Provider)("audi.tokens.mbb." + cc.User)
 	mbb := mbb.New(log, audi.AuthClientID).WithStore(mbbStore)
 
 	ts, err := service.MbbTokenSource(log, idk, mbb, audi.AuthParams, cc.User, cc.Password)

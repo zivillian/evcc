@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/evcc-io/evcc/api"
+	"github.com/evcc-io/evcc/api/store"
 	"github.com/evcc-io/evcc/util"
 	"github.com/evcc-io/evcc/util/request"
 	"github.com/evcc-io/evcc/vehicle/audi/etron"
@@ -28,7 +29,7 @@ func init() {
 }
 
 // NewEtronFromConfig creates a new vehicle
-func NewEtronFromConfig(other map[string]interface{}) (api.Vehicle, error) {
+func NewEtronFromConfig(ctx context.Context, other map[string]interface{}) (api.Vehicle, error) {
 	cc := struct {
 		embed               `mapstructure:",squash"`
 		User, Password, VIN string
@@ -49,10 +50,10 @@ func NewEtronFromConfig(other map[string]interface{}) (api.Vehicle, error) {
 
 	log := util.NewLogger("etron").Redact(cc.User, cc.Password, cc.VIN)
 
-	idkStore := NewStore("audi.etron.tokens.idk." + cc.User)
+	idkStore := ctx.Value(store.Key).(store.Provider)("audi.etron.tokens.idk." + cc.User)
 	idk := idkproxy.New(log, etron.IDKParams).WithStore(idkStore)
 
-	azsStore := NewStore("audi.etron.tokens.azs." + cc.User)
+	azsStore := ctx.Value(store.Key).(store.Provider)("audi.etron.tokens.azs." + cc.User)
 	azs := aazsproxy.New(log).WithStore(azsStore)
 
 	ats, its, err := service.AAZSTokenSource(log, idk, azs, etron.AZSConfig, etron.AuthParams, cc.User, cc.Password)

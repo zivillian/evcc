@@ -7,11 +7,11 @@ import (
 	"reflect"
 	"time"
 
+	"github.com/evcc-io/evcc/api/store"
 	"github.com/evcc-io/evcc/util"
 	"github.com/evcc-io/evcc/util/oauth"
 	"github.com/evcc-io/evcc/util/request"
 	"github.com/evcc-io/evcc/util/urlvalues"
-	"github.com/evcc-io/evcc/vehicle/vag"
 	"golang.org/x/oauth2"
 )
 
@@ -26,7 +26,7 @@ var Endpoint = &oauth2.Endpoint{
 
 type Service struct {
 	*request.Helper
-	store vag.Storage
+	store store.Store
 }
 
 func New(log *util.Logger) *Service {
@@ -36,7 +36,7 @@ func New(log *util.Logger) *Service {
 }
 
 // WithStore attaches a persistent store
-func (v *Service) WithStore(store vag.Storage) *Service {
+func (v *Service) WithStore(store store.Store) *Service {
 	if store != nil && !reflect.ValueOf(store).IsNil() {
 		v.store = store
 	}

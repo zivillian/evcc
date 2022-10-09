@@ -18,7 +18,7 @@ type Vehicle struct {
 }
 
 func init() {
-	registry.Add(api.Custom, NewConfigurableFromConfig)
+	registry.Add(api.Custom, withContext(NewConfigurableFromConfig))
 }
 
 // NewConfigurableFromConfig creates a new Vehicle

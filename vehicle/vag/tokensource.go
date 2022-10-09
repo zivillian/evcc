@@ -6,6 +6,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/evcc-io/evcc/api/store"
 	"github.com/imdario/mergo"
 	"golang.org/x/oauth2"
 )
@@ -33,7 +34,7 @@ type tokenSource struct {
 	mu    sync.Mutex
 	token *Token
 	new   TokenRefreshFunc
-	store Storage // TODO use or remove
+	store store.Store // TODO use or remove
 }
 
 func RefreshTokenSource(token *Token, refresher TokenRefreshFunc) *tokenSource {
@@ -41,7 +42,7 @@ func RefreshTokenSource(token *Token, refresher TokenRefreshFunc) *tokenSource {
 }
 
 // WithStore sets the storage option
-func (v *tokenSource) WithStore(store Storage) *tokenSource {
+func (v *tokenSource) WithStore(store store.Store) *tokenSource {
 	v.store = store
 	return v
 }

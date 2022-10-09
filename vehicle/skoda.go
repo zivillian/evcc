@@ -1,9 +1,11 @@
 package vehicle
 
 import (
+	"context"
 	"time"
 
 	"github.com/evcc-io/evcc/api"
+	"github.com/evcc-io/evcc/api/store"
 	"github.com/evcc-io/evcc/util"
 	"github.com/evcc-io/evcc/util/request"
 	"github.com/evcc-io/evcc/vehicle/skoda"
@@ -27,7 +29,7 @@ func init() {
 }
 
 // NewSkodaFromConfig creates a new vehicle
-func NewSkodaFromConfig(other map[string]interface{}) (api.Vehicle, error) {
+func NewSkodaFromConfig(ctx context.Context, other map[string]interface{}) (api.Vehicle, error) {
 	cc := struct {
 		embed               `mapstructure:",squash"`
 		User, Password, VIN string
@@ -48,10 +50,10 @@ func NewSkodaFromConfig(other map[string]interface{}) (api.Vehicle, error) {
 
 	log := util.NewLogger("skoda").Redact(cc.User, cc.Password, cc.VIN)
 
-	trsStore := NewStore("skoda.tokens.trs." + cc.User)
+	trsStore := ctx.Value(store.Key).(store.Provider)("skoda.tokens.trs." + cc.User)
 	trs := tokenrefreshservice.New(log, skoda.TRSParams).WithStore(trsStore)
 
-	mbbStore := NewStore("skoda.tokens.mbb." + cc.User)
+	mbbStore := ctx.Value(store.Key).(store.Provider)("skoda.tokens.mbb." + cc.User)
 	mbb := mbb.New(log, skoda.AuthClientID).WithStore(mbbStore)
 
 	ts, err := service.MbbTokenSource(log, trs, mbb, skoda.AuthParams, cc.User, cc.Password)

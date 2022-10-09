@@ -1,9 +1,11 @@
 package vehicle
 
 import (
+	"context"
 	"time"
 
 	"github.com/evcc-io/evcc/api"
+	"github.com/evcc-io/evcc/api/store"
 	"github.com/evcc-io/evcc/util"
 	"github.com/evcc-io/evcc/util/request"
 	"github.com/evcc-io/evcc/vehicle/seat"
@@ -27,7 +29,7 @@ func init() {
 }
 
 // NewSeatFromConfig creates a new vehicle
-func NewSeatFromConfig(other map[string]interface{}) (api.Vehicle, error) {
+func NewSeatFromConfig(ctx context.Context, other map[string]interface{}) (api.Vehicle, error) {
 	cc := struct {
 		embed               `mapstructure:",squash"`
 		User, Password, VIN string
@@ -48,10 +50,10 @@ func NewSeatFromConfig(other map[string]interface{}) (api.Vehicle, error) {
 
 	log := util.NewLogger("seat").Redact(cc.User, cc.Password, cc.VIN)
 
-	trsStore := NewStore("seat.tokens.trs." + cc.User)
+	trsStore := ctx.Value(store.Key).(store.Provider)("seat.tokens.trs." + cc.User)
 	trs := tokenrefreshservice.New(log, seat.TRSParams).WithStore(trsStore)
 
-	mbbStore := NewStore("seat.tokens.mbb." + cc.User)
+	mbbStore := ctx.Value(store.Key).(store.Provider)("seat.tokens.mbb." + cc.User)
 	mbb := mbb.New(log, seat.AuthClientID).WithStore(mbbStore)
 
 	ts, err := service.MbbTokenSource(log, trs, mbb, seat.AuthParams, cc.User, cc.Password)

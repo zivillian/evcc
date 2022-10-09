@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/coreos/go-oidc/v3/oidc"
+	"github.com/evcc-io/evcc/api/store"
 	"github.com/evcc-io/evcc/util"
 	"github.com/evcc-io/evcc/util/request"
 	"github.com/evcc-io/evcc/util/urlvalues"
@@ -34,7 +35,7 @@ var _ vag.TokenExchanger = (*Service)(nil)
 type Service struct {
 	*request.Helper
 	data  url.Values
-	store vag.Storage
+	store store.Store
 }
 
 func New(log *util.Logger, q url.Values) *Service {
@@ -63,7 +64,7 @@ func qmauthNow() string {
 }
 
 // WithStore attaches a persistent store
-func (v *Service) WithStore(store vag.Storage) *Service {
+func (v *Service) WithStore(store store.Store) *Service {
 	if store != nil && !reflect.ValueOf(store).IsNil() {
 		v.store = store
 	}

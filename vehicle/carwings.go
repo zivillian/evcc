@@ -33,7 +33,7 @@ type CarWings struct {
 }
 
 func init() {
-	registry.Add("carwings", NewCarWingsFromConfig)
+	registry.Add("carwings", withContext(NewCarWingsFromConfig))
 }
 
 // NewCarWingsFromConfig creates a new vehicle

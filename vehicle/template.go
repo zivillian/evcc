@@ -6,7 +6,7 @@ import (
 )
 
 func init() {
-	registry.Add("template", NewVehicleFromTemplateConfig)
+	registry.Add("template", withContext(NewVehicleFromTemplateConfig))
 }
 
 func NewVehicleFromTemplateConfig(other map[string]interface{}) (api.Vehicle, error) {

@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/evcc-io/evcc/api"
-	"github.com/evcc-io/evcc/vehicle/vag"
+	"github.com/evcc-io/evcc/api/store"
 	"golang.org/x/exp/slices"
 )
 
@@ -55,6 +55,6 @@ func (v *embed) Has(f api.Feature) bool {
 	return slices.Contains(v.Features_, f)
 }
 
-func (v *embed) Store() vag.Storage {
-	return v.Context.Value("store").(vag.Storage)
+func (v *embed) Store() store.Store {
+	return v.Context.Value("store").(store.Store)
 }

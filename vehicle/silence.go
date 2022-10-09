@@ -18,7 +18,7 @@ type Silence struct {
 }
 
 func init() {
-	registry.Add("silence", NewSilenceFromConfig)
+	registry.Add("silence", withContext(NewSilenceFromConfig))
 }
 
 // NewFordFromConfig creates a new vehicle

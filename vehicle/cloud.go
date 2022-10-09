@@ -26,7 +26,7 @@ type Cloud struct {
 }
 
 func init() {
-	registry.Add("cloud", NewCloudFromConfig)
+	registry.Add("cloud", withContext(NewCloudFromConfig))
 }
 
 // NewCloudFromConfig creates a new vehicle

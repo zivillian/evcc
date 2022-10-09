@@ -26,12 +26,12 @@ type Renault struct {
 }
 
 func init() {
-	registry.Add("dacia", func(other map[string]interface{}) (api.Vehicle, error) {
+	registry.Add("dacia", withContext(func(other map[string]interface{}) (api.Vehicle, error) {
 		return NewRenaultDaciaFromConfig("dacia", other)
-	})
-	registry.Add("renault", func(other map[string]interface{}) (api.Vehicle, error) {
+	}))
+	registry.Add("renault", withContext(func(other map[string]interface{}) (api.Vehicle, error) {
 		return NewRenaultDaciaFromConfig("renault", other)
-	})
+	}))
 }
 
 // NewRenaultDaciaFromConfig creates a new Renault/Dacia vehicle
