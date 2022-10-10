@@ -12,10 +12,10 @@ import (
 // https://github.com/TA2k/ioBroker.psa
 
 func init() {
-	registry.Add("citroen", withContext(NewCitroenFromConfig))
-	registry.Add("ds", withContext(NewDSFromConfig))
-	registry.Add("opel", withContext(NewOpelFromConfig))
-	registry.Add("peugeot", withContext(NewPeugeotFromConfig))
+	registry.Add("citroen", NewCitroenFromConfig)
+	registry.Add("ds", NewDSFromConfig)
+	registry.Add("opel", NewOpelFromConfig)
+	registry.Add("peugeot", NewPeugeotFromConfig)
 }
 
 // NewCitroenFromConfig creates a new vehicle

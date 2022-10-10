@@ -45,7 +45,7 @@ type Tronity struct {
 }
 
 func init() {
-	registry.Add("tronity", withContext(NewTronityFromConfig))
+	registry.Add("tronity", NewTronityFromConfig)
 }
 
 // go:generate go run ../cmd/tools/decorate.go -f decorateTronity -b *Tronity -r api.Vehicle -t "api.ChargeState,Status,func() (api.ChargeStatus, error)" -t "api.VehicleOdometer,Odometer,func() (float64, error)" -t "api.VehicleChargeController,StartCharge,func() error" -t "api.VehicleChargeController,StopCharge,func() error"

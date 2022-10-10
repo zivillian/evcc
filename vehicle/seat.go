@@ -1,7 +1,6 @@
 package vehicle
 
 import (
-	"context"
 	"time"
 
 	"github.com/evcc-io/evcc/api"
@@ -25,11 +24,11 @@ type Seat struct {
 }
 
 func init() {
-	registry.Add("seat", NewSeatFromConfig)
+	registry.AddWithStore("seat", NewSeatFromConfig)
 }
 
 // NewSeatFromConfig creates a new vehicle
-func NewSeatFromConfig(ctx context.Context, other map[string]interface{}) (api.Vehicle, error) {
+func NewSeatFromConfig(factory store.Provider, other map[string]interface{}) (api.Vehicle, error) {
 	cc := struct {
 		embed               `mapstructure:",squash"`
 		User, Password, VIN string
@@ -50,10 +49,10 @@ func NewSeatFromConfig(ctx context.Context, other map[string]interface{}) (api.V
 
 	log := util.NewLogger("seat").Redact(cc.User, cc.Password, cc.VIN)
 
-	trsStore := ctx.Value(store.Key).(store.Provider)("seat.tokens.trs." + cc.User)
+	trsStore := factory("seat.tokens.trs." + cc.User)
 	trs := tokenrefreshservice.New(log, seat.TRSParams).WithStore(trsStore)
 
-	mbbStore := ctx.Value(store.Key).(store.Provider)("seat.tokens.mbb." + cc.User)
+	mbbStore := factory("seat.tokens.mbb." + cc.User)
 	mbb := mbb.New(log, seat.AuthClientID).WithStore(mbbStore)
 
 	ts, err := service.MbbTokenSource(log, trs, mbb, seat.AuthParams, cc.User, cc.Password)

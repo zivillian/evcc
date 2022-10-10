@@ -15,8 +15,8 @@ type BMW struct {
 }
 
 func init() {
-	registry.Add("bmw", withContext(NewBMWFromConfig))
-	registry.Add("mini", withContext(NewMiniFromConfig))
+	registry.Add("bmw", NewBMWFromConfig)
+	registry.Add("mini", NewMiniFromConfig)
 }
 
 // NewBMWFromConfig creates a new vehicle

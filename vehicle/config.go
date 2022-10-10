@@ -1,7 +1,6 @@
 package vehicle
 
 import (
-	"context"
 	"fmt"
 	"strings"
 	"time"
@@ -19,17 +18,32 @@ const (
 )
 
 type (
-	vehicleRegistry map[string]factoryFunc
-	factoryFunc     func(context.Context, map[string]any) (api.Vehicle, error)
+	vehicleRegistry  map[string]factoryFunc
+	factoryFuncPlain func(map[string]any) (api.Vehicle, error)
+	factoryFunc      func(store.Provider, map[string]any) (api.Vehicle, error)
 )
 
-func withContext(f func(map[string]any) (api.Vehicle, error)) factoryFunc {
-	return func(_ context.Context, other map[string]any) (api.Vehicle, error) {
-		return f(other)
+var storeFactory store.Provider
+
+func init() {
+	storeFactory = store.Provider(func(string) store.Store { return nil })
+	if db.Instance != nil {
+		storeFactory = store.Provider(settings.NewStore)
 	}
 }
 
-func (r vehicleRegistry) Add(name string, factory factoryFunc) {
+func (r vehicleRegistry) Add(name string, f factoryFuncPlain) {
+	factory := func(_ store.Provider, other map[string]any) (api.Vehicle, error) {
+		return f(other)
+	}
+
+	if _, exists := r[name]; exists {
+		panic(fmt.Sprintf("cannot register duplicate vehicle type: %s", name))
+	}
+	r[name] = factory
+}
+
+func (r vehicleRegistry) AddWithStore(name string, factory factoryFunc) {
 	if _, exists := r[name]; exists {
 		panic(fmt.Sprintf("cannot register duplicate vehicle type: %s", name))
 	}
@@ -71,16 +85,9 @@ func NewFromConfig(typ string, other map[string]interface{}) (v api.Vehicle, err
 		typ = "cloud"
 	}
 
-	ctx := context.Background()
-	if db.Instance == nil {
-		ctx = context.WithValue(ctx, store.Key, store.Provider(func(string) store.Store { return nil }))
-	} else {
-		ctx = context.WithValue(ctx, store.Key, store.Provider(settings.NewStore))
-	}
-
 	factory, err := registry.Get(strings.ToLower(typ))
 	if err == nil {
-		if v, err = factory(ctx, cc.Other); err != nil {
+		if v, err = factory(storeFactory, cc.Other); err != nil {
 			err = fmt.Errorf("cannot create vehicle '%s': %w", typ, err)
 		}
 	} else {

@@ -25,11 +25,11 @@ type Etron struct {
 }
 
 func init() {
-	registry.Add("etron", NewEtronFromConfig)
+	registry.AddWithStore("etron", NewEtronFromConfig)
 }
 
 // NewEtronFromConfig creates a new vehicle
-func NewEtronFromConfig(ctx context.Context, other map[string]interface{}) (api.Vehicle, error) {
+func NewEtronFromConfig(factory store.Provider, other map[string]interface{}) (api.Vehicle, error) {
 	cc := struct {
 		embed               `mapstructure:",squash"`
 		User, Password, VIN string
@@ -50,10 +50,10 @@ func NewEtronFromConfig(ctx context.Context, other map[string]interface{}) (api.
 
 	log := util.NewLogger("etron").Redact(cc.User, cc.Password, cc.VIN)
 
-	idkStore := ctx.Value(store.Key).(store.Provider)("audi.etron.tokens.idk." + cc.User)
+	idkStore := factory("audi.etron.tokens.idk." + cc.User)
 	idk := idkproxy.New(log, etron.IDKParams).WithStore(idkStore)
 
-	azsStore := ctx.Value(store.Key).(store.Provider)("audi.etron.tokens.azs." + cc.User)
+	azsStore := factory("audi.etron.tokens.azs." + cc.User)
 	azs := aazsproxy.New(log).WithStore(azsStore)
 
 	ats, its, err := service.AAZSTokenSource(log, idk, azs, etron.AZSConfig, etron.AuthParams, cc.User, cc.Password)

@@ -27,7 +27,7 @@ type Niu struct {
 }
 
 func init() {
-	registry.Add("niu", withContext(NewNiuFromConfig))
+	registry.Add("niu", NewNiuFromConfig)
 }
 
 // NewFordFromConfig creates a new vehicle

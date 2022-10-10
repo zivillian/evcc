@@ -1,7 +1,6 @@
 package vehicle
 
 import (
-	"context"
 	"time"
 
 	"github.com/evcc-io/evcc/api"
@@ -24,11 +23,11 @@ type VW struct {
 }
 
 func init() {
-	registry.Add("vw", NewVWFromConfig)
+	registry.AddWithStore("vw", NewVWFromConfig)
 }
 
 // NewVWFromConfig creates a new vehicle
-func NewVWFromConfig(ctx context.Context, other map[string]interface{}) (api.Vehicle, error) {
+func NewVWFromConfig(factory store.Provider, other map[string]interface{}) (api.Vehicle, error) {
 	cc := struct {
 		embed               `mapstructure:",squash"`
 		User, Password, VIN string
@@ -49,10 +48,10 @@ func NewVWFromConfig(ctx context.Context, other map[string]interface{}) (api.Veh
 
 	log := util.NewLogger("vw").Redact(cc.User, cc.Password, cc.VIN)
 
-	trsStore := ctx.Value(store.Key).(store.Provider)("vw.tokens.trs." + cc.User)
+	trsStore := factory("vw.tokens.trs." + cc.User)
 	trs := tokenrefreshservice.New(log, vw.TRSParams).WithStore(trsStore)
 
-	mbbStore := ctx.Value(store.Key).(store.Provider)("vw.tokens.mbb." + cc.User)
+	mbbStore := factory("vw.tokens.mbb." + cc.User)
 	mbb := mbb.New(log, vw.AuthClientID).WithStore(mbbStore)
 
 	ts, err := service.MbbTokenSource(log, trs, mbb, vw.AuthParams, cc.User, cc.Password)

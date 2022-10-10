@@ -1,7 +1,6 @@
 package vehicle
 
 import (
-	"context"
 	"time"
 
 	"github.com/evcc-io/evcc/api"
@@ -23,11 +22,11 @@ type Enyaq struct {
 }
 
 func init() {
-	registry.Add("enyaq", NewEnyaqFromConfig)
+	registry.AddWithStore("enyaq", NewEnyaqFromConfig)
 }
 
 // NewEnyaqFromConfig creates a new vehicle
-func NewEnyaqFromConfig(ctx context.Context, other map[string]interface{}) (api.Vehicle, error) {
+func NewEnyaqFromConfig(factory store.Provider, other map[string]interface{}) (api.Vehicle, error) {
 	cc := struct {
 		embed               `mapstructure:",squash"`
 		User, Password, VIN string
@@ -49,7 +48,7 @@ func NewEnyaqFromConfig(ctx context.Context, other map[string]interface{}) (api.
 	var err error
 	log := util.NewLogger("enyaq").Redact(cc.User, cc.Password, cc.VIN)
 
-	trsStore := ctx.Value(store.Key).(store.Provider)("skoda.tokens.trs." + cc.User)
+	trsStore := factory("skoda.tokens.trs." + cc.User)
 	trs := tokenrefreshservice.New(log, skoda.TRSParams).WithStore(trsStore)
 
 	// use Skoda credentials to resolve list of vehicles
@@ -76,7 +75,7 @@ func NewEnyaqFromConfig(ctx context.Context, other map[string]interface{}) (api.
 
 	// use Connect credentials to build provider
 	if err == nil {
-		trsStore := ctx.Value(store.Key).(store.Provider)("skoda.connect.tokens.trs." + cc.User)
+		trsStore := factory("skoda.connect.tokens.trs." + cc.User)
 		trs := tokenrefreshservice.New(log, skoda.TRSParams).WithStore(trsStore)
 
 		ts, err := service.TokenRefreshServiceTokenSource(log, trs, connect.AuthParams, cc.User, cc.Password)

@@ -18,7 +18,7 @@ type Mercedes struct {
 }
 
 func init() {
-	registry.Add("mercedes", withContext(NewMercedesFromConfig))
+	registry.Add("mercedes", NewMercedesFromConfig)
 }
 
 // NewMercedesFromConfig creates a new Mercedes vehicle

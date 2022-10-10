@@ -50,7 +50,7 @@ type Ovms struct {
 }
 
 func init() {
-	registry.Add("ovms", withContext(NewOvmsFromConfig))
+	registry.Add("ovms", NewOvmsFromConfig)
 }
 
 // NewOVMSFromConfig creates a new vehicle

@@ -1,7 +1,6 @@
 package vehicle
 
 import (
-	"context"
 	"time"
 
 	"github.com/evcc-io/evcc/api"
@@ -22,11 +21,11 @@ type ID struct {
 }
 
 func init() {
-	registry.Add("id", NewIDFromConfig)
+	registry.AddWithStore("id", NewIDFromConfig)
 }
 
 // NewIDFromConfig creates a new vehicle
-func NewIDFromConfig(ctx context.Context, other map[string]interface{}) (api.Vehicle, error) {
+func NewIDFromConfig(factory store.Provider, other map[string]interface{}) (api.Vehicle, error) {
 	cc := struct {
 		embed               `mapstructure:",squash"`
 		User, Password, VIN string
@@ -47,7 +46,7 @@ func NewIDFromConfig(ctx context.Context, other map[string]interface{}) (api.Veh
 
 	log := util.NewLogger("id").Redact(cc.User, cc.Password, cc.VIN)
 
-	appsStore := ctx.Value(store.Key).(store.Provider)("vw.id.tokens.loginapps." + cc.User)
+	appsStore := factory("vw.id.tokens.loginapps." + cc.User)
 	apps := loginapps.New(log).WithStore(appsStore)
 
 	ts, err := service.LoginAppsServiceTokenSource(log, apps, id.LoginURL, id.AuthParams, cc.User, cc.Password)

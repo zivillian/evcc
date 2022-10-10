@@ -17,7 +17,7 @@ type Smart struct {
 }
 
 func init() {
-	registry.Add("smart", withContext(NewSmartFromConfig))
+	registry.Add("smart", NewSmartFromConfig)
 }
 
 // NewSmartFromConfig creates a new vehicle

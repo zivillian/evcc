@@ -15,8 +15,8 @@ type Bluelink struct {
 }
 
 func init() {
-	registry.Add("kia", withContext(NewKiaFromConfig))
-	registry.Add("hyundai", withContext(NewHyundaiFromConfig))
+	registry.Add("kia", NewKiaFromConfig)
+	registry.Add("hyundai", NewHyundaiFromConfig)
 }
 
 // NewHyundaiFromConfig creates a new vehicle

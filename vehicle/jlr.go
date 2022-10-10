@@ -22,8 +22,8 @@ type JLR struct {
 }
 
 func init() {
-	registry.Add("jaguar", withContext(NewJLRFromConfig))
-	registry.Add("landrover", withContext(NewJLRFromConfig))
+	registry.Add("jaguar", NewJLRFromConfig)
+	registry.Add("landrover", NewJLRFromConfig)
 }
 
 // NewJLRFromConfig creates a new vehicle
