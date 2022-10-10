@@ -19,8 +19,8 @@ const (
 
 type (
 	vehicleRegistry  map[string]factoryFunc
-	factoryFuncPlain func(map[string]any) (api.Vehicle, error)
 	factoryFunc      func(store.Provider, map[string]any) (api.Vehicle, error)
+	factoryFuncPlain func(map[string]any) (api.Vehicle, error)
 )
 
 var storeFactory store.Provider
