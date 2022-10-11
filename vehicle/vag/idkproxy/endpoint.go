@@ -145,5 +145,10 @@ func (v *Service) TokenSource(token *vag.Token) vag.TokenSource {
 		}
 	}
 
+	// don't create tokensource for nil token
+	if token == nil {
+		return nil
+	}
+
 	return vag.RefreshTokenSource(token, v.refresh)
 }

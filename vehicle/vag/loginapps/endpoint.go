@@ -108,5 +108,10 @@ func (v *Service) TokenSource(token *Token) oauth2.TokenSource {
 		}
 	}
 
+	// don't create tokensource for nil token
+	if token == nil {
+		return nil
+	}
+
 	return oauth.RefreshTokenSource((*oauth2.Token)(token), v)
 }

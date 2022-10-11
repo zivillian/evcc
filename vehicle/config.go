@@ -23,15 +23,6 @@ type (
 	factoryFuncPlain func(map[string]any) (api.Vehicle, error)
 )
 
-var storeFactory store.Provider
-
-func init() {
-	storeFactory = store.Provider(func(string) store.Store { return nil })
-	if db.Instance != nil {
-		storeFactory = store.Provider(settings.NewStore)
-	}
-}
-
 func (r vehicleRegistry) Add(name string, f factoryFuncPlain) {
 	factory := func(_ store.Provider, other map[string]any) (api.Vehicle, error) {
 		return f(other)
@@ -87,6 +78,11 @@ func NewFromConfig(typ string, other map[string]interface{}) (v api.Vehicle, err
 
 	factory, err := registry.Get(strings.ToLower(typ))
 	if err == nil {
+		storeFactory := store.Provider(func(string) store.Store { return nil })
+		if db.Instance != nil {
+			storeFactory = store.Provider(settings.NewStore)
+		}
+
 		if v, err = factory(storeFactory, cc.Other); err != nil {
 			err = fmt.Errorf("cannot create vehicle '%s': %w", typ, err)
 		}
