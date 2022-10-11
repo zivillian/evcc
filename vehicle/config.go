@@ -78,9 +78,9 @@ func NewFromConfig(typ string, other map[string]interface{}) (v api.Vehicle, err
 
 	factory, err := registry.Get(strings.ToLower(typ))
 	if err == nil {
-		storeFactory := store.Provider(func(string) store.Store { return nil })
+		storeFactory := func(string) store.Store { return nil }
 		if db.Instance != nil {
-			storeFactory = store.Provider(settings.NewStore)
+			storeFactory = settings.NewStore
 		}
 
 		if v, err = factory(storeFactory, cc.Other); err != nil {
