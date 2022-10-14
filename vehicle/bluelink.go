@@ -4,8 +4,11 @@ import (
 	"time"
 
 	"github.com/evcc-io/evcc/api"
+	"github.com/evcc-io/evcc/api/store"
 	"github.com/evcc-io/evcc/util"
+	"github.com/evcc-io/evcc/util/oauth"
 	"github.com/evcc-io/evcc/vehicle/bluelink"
+	"golang.org/x/oauth2"
 )
 
 // Bluelink is an api.Vehicle implementation
@@ -15,12 +18,12 @@ type Bluelink struct {
 }
 
 func init() {
-	registry.Add("kia", NewKiaFromConfig)
-	registry.Add("hyundai", NewHyundaiFromConfig)
+	registry.AddWithStore("kia", NewKiaFromConfig)
+	registry.AddWithStore("hyundai", NewHyundaiFromConfig)
 }
 
 // NewHyundaiFromConfig creates a new vehicle
-func NewHyundaiFromConfig(other map[string]interface{}) (api.Vehicle, error) {
+func NewHyundaiFromConfig(factory store.Provider, other map[string]interface{}) (api.Vehicle, error) {
 	settings := bluelink.Config{
 		URI:               "https://prd.eu-ccapi.hyundai.com:8080",
 		BasicToken:        "NmQ0NzdjMzgtM2NhNC00Y2YzLTk1NTctMmExOTI5YTk0NjU0OktVeTQ5WHhQekxwTHVvSzB4aEJDNzdXNlZYaG10UVI5aVFobUlGampvWTRJcHhzVg==",
@@ -30,11 +33,11 @@ func NewHyundaiFromConfig(other map[string]interface{}) (api.Vehicle, error) {
 		BrandAuthUrl:      "https://eu-account.hyundai.com/auth/realms/euhyundaiidm/protocol/openid-connect/auth?client_id=%s&scope=openid%%20profile%%20email%%20phone&response_type=code&hkid_session_reset=true&redirect_uri=%s/api/v1/user/integration/redirect/login&ui_locales=%s&state=%s:%s",
 	}
 
-	return newBluelinkFromConfig("hyundai", other, settings)
+	return newBluelinkFromConfig("hyundai", factory, other, settings)
 }
 
 // NewKiaFromConfig creates a new vehicle
-func NewKiaFromConfig(other map[string]interface{}) (api.Vehicle, error) {
+func NewKiaFromConfig(factory store.Provider, other map[string]interface{}) (api.Vehicle, error) {
 	settings := bluelink.Config{
 		URI:               "https://prd.eu-ccapi.kia.com:8080",
 		BasicToken:        "ZmRjODVjMDAtMGEyZi00YzY0LWJjYjQtMmNmYjE1MDA3MzBhOnNlY3JldA==",
@@ -44,11 +47,11 @@ func NewKiaFromConfig(other map[string]interface{}) (api.Vehicle, error) {
 		BrandAuthUrl:      "https://eu-account.kia.com/auth/realms/eukiaidm/protocol/openid-connect/auth?client_id=%s&scope=openid%%20profile%%20email%%20phone&response_type=code&hkid_session_reset=true&redirect_uri=%s/api/v1/user/integration/redirect/login&ui_locales=%s&state=%s:%s",
 	}
 
-	return newBluelinkFromConfig("kia", other, settings)
+	return newBluelinkFromConfig("kia", factory, other, settings)
 }
 
 // newBluelinkFromConfig creates a new Vehicle
-func newBluelinkFromConfig(brand string, other map[string]interface{}, settings bluelink.Config) (api.Vehicle, error) {
+func newBluelinkFromConfig(brand string, factory store.Provider, other map[string]interface{}, settings bluelink.Config) (api.Vehicle, error) {
 	cc := struct {
 		embed          `mapstructure:",squash"`
 		User, Password string
@@ -67,10 +70,21 @@ func newBluelinkFromConfig(brand string, other map[string]interface{}, settings 
 	}
 
 	log := util.NewLogger(brand).Redact(cc.User, cc.Password, cc.VIN)
-	identity := bluelink.NewIdentity(log, settings)
 
-	if err := identity.Login(cc.User, cc.Password, cc.Language); err != nil {
-		return nil, err
+	// var device string
+	// deviceStore := factory(brand + ".tokens.bluelink.deviceid." + cc.User)
+	// deviceStore.Load(&device)
+
+	tokenStore := factory(brand + ".tokens.bluelink." + cc.User)
+	identity := bluelink.NewIdentity(log, settings).WithStore(tokenStore)
+
+	var token oauth2.Token
+	if err := tokenStore.Load(&token); err == nil {
+		identity.TokenSource = oauth.CachedTokenSource(tokenStore, oauth.RefreshTokenSource(&token, identity))
+	} else {
+		if err := identity.Login(cc.User, cc.Password, cc.Language); err != nil {
+			return nil, err
+		}
 	}
 
 	api := bluelink.NewAPI(log, settings.URI, identity)

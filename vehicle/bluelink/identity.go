@@ -6,10 +6,13 @@ import (
 	"net/http"
 	"net/http/cookiejar"
 	"net/url"
+	"reflect"
 	"strings"
+	"time"
 
 	"github.com/PuerkitoBio/goquery"
 	"github.com/evcc-io/evcc/api"
+	"github.com/evcc-io/evcc/api/store"
 	"github.com/evcc-io/evcc/util"
 	"github.com/evcc-io/evcc/util/oauth"
 	"github.com/evcc-io/evcc/util/request"
@@ -45,6 +48,7 @@ type Identity struct {
 	config   Config
 	deviceID string
 	oauth2.TokenSource
+	store store.Store
 }
 
 // NewIdentity creates BlueLink Identity
@@ -55,6 +59,14 @@ func NewIdentity(log *util.Logger, config Config) *Identity {
 		config: config,
 	}
 
+	return v
+}
+
+// WithStore attaches a persistent store
+func (v *Identity) WithStore(store store.Store) *Identity {
+	if store != nil && !reflect.ValueOf(store).IsNil() {
+		v.store = store
+	}
 	return v
 }
 
@@ -315,6 +327,11 @@ func (v *Identity) RefreshToken(token *oauth2.Token) (*oauth2.Token, error) {
 		err = v.DoJSON(req, &res)
 	}
 
+	if err == nil && v.store != nil {
+		fmt.Println("bluelink refresh remaining:", time.Until(res.Expiry))
+		err = v.store.Save(res)
+	}
+
 	return (*oauth2.Token)(&res), err
 }
 
@@ -345,7 +362,17 @@ func (v *Identity) Login(user, password, language string) (err error) {
 	if err == nil {
 		var token oauth.Token
 		if token, err = v.exchangeCode(code); err == nil {
-			v.TokenSource = oauth.RefreshTokenSource((*oauth2.Token)(&token), v)
+
+			if v.store != nil {
+				fmt.Println("bluelink refresh remaining:", time.Until(token.Expiry))
+				err = v.store.Save(token)
+			}
+
+			ts := oauth.RefreshTokenSource((*oauth2.Token)(&token), v)
+			if v.store != nil {
+				ts = oauth.CachedTokenSource(v.store, ts)
+			}
+			v.TokenSource = ts
 		}
 	}
 
