@@ -75,19 +75,27 @@ func newBluelinkFromConfig(brand string, factory store.Provider, other map[strin
 	// deviceStore := factory(brand + ".tokens.bluelink.deviceid." + cc.User)
 	// deviceStore.Load(&device)
 
-	tokenStore := factory(brand + ".tokens.bluelink." + cc.User)
-	identity := bluelink.NewIdentity(log, settings).WithStore(tokenStore)
+	tokenStore := factory(brand + ".bluelink." + cc.User)
+
+	var (
+		ts       oauth2.TokenSource
+		deviceID string
+		err      error
+	)
 
 	var token oauth2.Token
 	if err := tokenStore.Load(&token); err == nil {
-		identity.TokenSource = oauth.CachedTokenSource(tokenStore, oauth.RefreshTokenSource(&token, identity))
+		_ = oauth.CachedTokenSource(tokenStore, oauth.RefreshTokenSource(&token, identity))
 	} else {
-		if err := identity.Login(cc.User, cc.Password, cc.Language); err != nil {
+		identity := bluelink.NewIdentity(log, settings).WithStore(tokenStore)
+		ts, deviceID, err = identity.Login(cc.User, cc.Password, cc.Language)
+		if err != nil {
 			return nil, err
 		}
 	}
 
-	api := bluelink.NewAPI(log, settings.URI, identity)
+	requester := bluelink.NewRequester(settings, ts, deviceID)
+	api := bluelink.NewAPI(log, settings.URI, requester)
 
 	vehicle, err := ensureVehicleEx(
 		cc.VIN, api.Vehicles,

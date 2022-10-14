@@ -44,9 +44,9 @@ type Config struct {
 // Based on https://github.com/Hacksore/bluelinky.
 type Identity struct {
 	*request.Helper
-	log      *util.Logger
-	config   Config
-	deviceID string
+	log    *util.Logger
+	config Config
+	// deviceID string
 	oauth2.TokenSource
 	store store.Store
 }
@@ -335,12 +335,12 @@ func (v *Identity) RefreshToken(token *oauth2.Token) (*oauth2.Token, error) {
 	return (*oauth2.Token)(&res), err
 }
 
-func (v *Identity) Login(user, password, language string) (err error) {
+func (v *Identity) Login(user, password, language string) (oauth2.TokenSource, string, error) {
 	if user == "" || password == "" {
-		return api.ErrMissingCredentials
+		return nil, "", api.ErrMissingCredentials
 	}
 
-	v.deviceID, err = v.getDeviceID()
+	deviceID, err := v.getDeviceID()
 
 	var cookieClient *request.Helper
 	if err == nil {
@@ -359,20 +359,11 @@ func (v *Identity) Login(user, password, language string) (err error) {
 		}
 	}
 
+	var ts oauth2.TokenSource
 	if err == nil {
 		var token oauth.Token
 		if token, err = v.exchangeCode(code); err == nil {
-
-			if v.store != nil {
-				fmt.Println("bluelink refresh remaining:", time.Until(token.Expiry))
-				err = v.store.Save(token)
-			}
-
-			ts := oauth.RefreshTokenSource((*oauth2.Token)(&token), v)
-			if v.store != nil {
-				ts = oauth.CachedTokenSource(v.store, ts)
-			}
-			v.TokenSource = ts
+			ts = oauth.RefreshTokenSource((*oauth2.Token)(&token), v)
 		}
 	}
 
@@ -380,31 +371,5 @@ func (v *Identity) Login(user, password, language string) (err error) {
 		err = fmt.Errorf("login failed: %w", err)
 	}
 
-	return err
-}
-
-// Request decorates requests with authorization headers
-func (v *Identity) Request(req *http.Request) error {
-	stamp, err := Stamps[v.config.CCSPApplicationID].Get()
-	if err != nil {
-		return err
-	}
-
-	token, err := v.Token()
-	if err != nil {
-		return err
-	}
-
-	for k, v := range map[string]string{
-		"Authorization":       "Bearer " + token.AccessToken,
-		"ccsp-device-id":      v.deviceID,
-		"ccsp-application-id": v.config.CCSPApplicationID,
-		"offset":              "1",
-		"User-Agent":          "okhttp/3.10.0",
-		"Stamp":               stamp,
-	} {
-		req.Header.Set(k, v)
-	}
-
-	return nil
+	return ts, deviceID, err
 }

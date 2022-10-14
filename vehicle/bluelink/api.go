@@ -3,7 +3,6 @@ package bluelink
 import (
 	"errors"
 	"fmt"
-	"net/http"
 	"strings"
 	"time"
 
@@ -30,10 +29,6 @@ var ErrAuthFail = errors.New("authorization failed")
 type API struct {
 	*request.Helper
 	baseURI string
-}
-
-type Requester interface {
-	Request(*http.Request) error
 }
 
 // New creates a new BlueLink API
