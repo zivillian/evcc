@@ -19,7 +19,7 @@ PLATFORM := linux/amd64,linux/arm64,linux/arm/v6
 # gokrazy image
 IMAGE_FILE := evcc_$(TAG_NAME).image
 IMAGE_ROOTFS := evcc_$(TAG_NAME).rootfs
-IMAGE_OPTIONS := -hostname evcc -http_port 8080 github.com/gokrazy/serial-busybox github.com/gokrazy/breakglass github.com/gokrazy/mkfs github.com/gokrazy/wifi github.com/evcc-io/evcc
+IMAGE_OPTIONS := -hostname evcc -http_port 8080 github.com/gokrazy/serial-busybox github.com/gokrazy/breakglass github.com/gokrazy/mkfs github.com/gokrazy/wifi tailscale.com/cmd/tailscaled tailscale.com/cmd/tailscale github.com/evcc-io/evcc
 
 # deb
 PACKAGES = ./release
@@ -107,11 +107,20 @@ apt-release::
 # gokrazy image
 image::
 	go install github.com/gokrazy/tools/cmd/gokr-packer@main
+
 	mkdir -p flags/github.com/gokrazy/breakglass
 	echo "-forward=private-network" > flags/github.com/gokrazy/breakglass/flags.txt
+
+	mkdir -p flags/github.com/evcc-io/evcc
+	echo "--sqlite=/perm/evcc.db" > flags/github.com/evcc-io/evcc/flags.txt
+
+	mkdir -p flags/tailscale.com/cmd/tailscale
+	echo "up" > flags/tailscale.com/cmd/tailscale/flags.txt
+
 	mkdir -p buildflags/github.com/evcc-io/evcc
 	echo "$(BUILD_TAGS),gokrazy" > buildflags/github.com/evcc-io/evcc/buildflags.txt
 	echo "-ldflags=$(LD_FLAGS)" >> buildflags/github.com/evcc-io/evcc/buildflags.txt
+
 	gokr-packer -overwrite=$(IMAGE_FILE) -target_storage_bytes=1258299392 $(IMAGE_OPTIONS)
 	gzip -f $(IMAGE_FILE)
 
