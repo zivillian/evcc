@@ -1,7 +1,9 @@
 package main
 
 import (
+	"errors"
 	"fmt"
+	"strconv"
 
 	"github.com/lorenzodonini/ocpp-go/ocpp1.6/core"
 	"github.com/lorenzodonini/ocpp-go/ocpp1.6/remotetrigger"
@@ -34,14 +36,42 @@ func (handler *ChargePointHandler) OnDataTransfer(request *core.DataTransferRequ
 
 func (handler *ChargePointHandler) OnGetConfiguration(request *core.GetConfigurationRequest) (confirmation *core.GetConfigurationConfirmation, err error) {
 	fmt.Printf("%T %+v\n", request, request)
+
+	maxKeys := 10
+	maxKeysString := strconv.Itoa(maxKeys)
+
 	one := "1"
-	return core.NewGetConfigurationConfirmation([]core.ConfigurationKey{
+	defaultKeys := []core.ConfigurationKey{
+		{Key: "GetConfigurationMaxKeys", Value: &maxKeysString},
 		{Key: "NumberOfConnectors", Value: &one},
 		{Key: "ChargeProfileMaxStackLevel", Value: &one},
 		{Key: "ChargingScheduleMaxPeriods", Value: &one},
 		{Key: "MaxChargingProfilesInstalled", Value: &one},
 		{Key: "ChargingScheduleAllowedChargingRateUnit", Value: &one},
-	}), nil
+	}
+
+	res := core.NewGetConfigurationConfirmation(nil)
+
+	// all keys
+	if len(request.Key) == 0 {
+		res.ConfigurationKey = defaultKeys
+	}
+
+	// selected keys
+	for _, k := range request.Key {
+		for _, dk := range defaultKeys {
+			if dk.Key == k {
+				res.ConfigurationKey = append(res.ConfigurationKey, dk)
+			}
+		}
+	}
+
+	// too many keys
+	if len(res.ConfigurationKey) > maxKeys {
+		return nil, errors.New("too many keys requested")
+	}
+
+	return res, nil
 }
 
 func (handler *ChargePointHandler) OnRemoteStartTransaction(request *core.RemoteStartTransactionRequest) (confirmation *core.RemoteStartTransactionConfirmation, err error) {

@@ -135,12 +135,52 @@ func NewOCPP(id string, connector int, idtag string, meterValues string, meterIn
 	)
 
 	keys := []string{
-		ocpp.KeyNumberOfConnectors,
-		ocpp.KeyMeterValuesSampledData,
-		ocpp.KeyMeterValueSampleInterval,
-		ocpp.KeyConnectorSwitch3to1PhaseSupported,
+		ocpp.GetConfigurationMaxKeys,
+		// ocpp.KeyNumberOfConnectors,
+		// ocpp.KeyMeterValuesSampledData,
+		// ocpp.KeyMeterValueSampleInterval,
+		// ocpp.KeyConnectorSwitch3to1PhaseSupported,
 	}
-	_ = keys
+
+	err := ocpp.Instance().GetConfiguration(cp.ID(), func(resp *core.GetConfigurationConfirmation, err error) {
+		if err == nil {
+			// log unsupported configuration keys
+			if len(resp.UnknownKey) > 0 {
+				c.log.ERROR.Printf("unsupported keys: %v", sort.StringSlice(resp.UnknownKey))
+			}
+
+			// sort configuration keys for printing
+			sort.Slice(resp.ConfigurationKey, func(i, j int) bool {
+				return resp.ConfigurationKey[i].Key < resp.ConfigurationKey[j].Key
+			})
+
+			rw := map[bool]string{false: "r/w", true: "r/o"}
+
+			for _, opt := range resp.ConfigurationKey {
+				if opt.Value == nil {
+					c.log.ERROR.Printf("%s (%s): %s", opt.Key, rw[opt.Readonly], "nil")
+					continue
+				}
+
+				c.log.TRACE.Printf("%s (%s): %s", opt.Key, rw[opt.Readonly], *opt.Value)
+
+				switch opt.Key {
+				case ocpp.GetConfigurationMaxKeys:
+					c.log.DEBUG.Printf("GetConfigurationMaxKeys: %s", *opt.Value)
+				}
+
+				if err != nil {
+					break
+				}
+			}
+		}
+
+		rc <- err
+	}, keys)
+
+	if err := c.wait(err, rc); err != nil {
+		return nil, err
+	}
 
 	// quirks mode disables GetConfiguration
 	if quirks {

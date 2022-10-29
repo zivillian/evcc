@@ -15,7 +15,8 @@ import (
 
 const (
 	// Core profile keys
-	KeyNumberOfConnectors = "NumberOfConnectors"
+	GetConfigurationMaxKeys = "GetConfigurationMaxKeys"
+	KeyNumberOfConnectors   = "NumberOfConnectors"
 
 	// Meter profile keys
 	KeyMeterValuesSampledData   = "MeterValuesSampledData"
