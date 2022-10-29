@@ -127,7 +127,9 @@ func NewOCPP(id string, connector int, idtag string, meterValues string, meterIn
 	}
 
 	// see who's there
-	// ocpp.Instance().TriggerMessageRequest(cp.ID(), core.BootNotificationFeatureName)
+	ocpp.Instance().TriggerMessageRequest(cp.ID(), core.BootNotificationFeatureName)
+
+	ocpp.Instance().TriggerResetRequest(cp.ID(), core.ResetTypeSoft)
 
 	var (
 		rc                  = make(chan error, 1)
