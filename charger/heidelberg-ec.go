@@ -112,10 +112,12 @@ func NewHeidelbergEC(uri, device, comset string, baudrate int, proto modbus.Prot
 
 	var phases1p3p func(int) error
 	b, err := wb.conn.ReadHoldingRegisters(hecRegFirmware, 1)
-	phases := binary.BigEndian.Uint16(b)
-	if err == nil && (phases == 3 || phases == 1) {
-		log.DEBUG.Println("detected phase switch")
-		phases1p3p = wb.phases1p3p
+	if err == nil {
+		phases := binary.BigEndian.Uint16(b)
+		if (phases == 3 || phases == 1) {
+			log.DEBUG.Println("detected phase switch")
+			phases1p3p = wb.phases1p3p
+		}
 	}
 	return decorateHeidelbergEC(wb, phases1p3p), err
 }
