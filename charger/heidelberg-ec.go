@@ -115,8 +115,8 @@ func NewHeidelbergEC(ctx context.Context, uri, device, comset string, baudrate i
 	}
 
 	var phases1p3p func(int) error
-	b, err := wb.conn.ReadHoldingRegisters(hecRegFirmware, 1)
-	if err == nil {
+	b, noSwitchErr := wb.conn.ReadHoldingRegisters(hecRegFirmware, 1)
+	if noSwitchErr == nil {
 		phases := binary.BigEndian.Uint16(b)
 		if (phases == 3 || phases == 1) {
 			log.DEBUG.Println("detected phase switch")
