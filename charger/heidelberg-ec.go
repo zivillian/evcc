@@ -116,7 +116,7 @@ func NewHeidelbergEC(ctx context.Context, settings modbus.Settings) (api.Charger
 	b, noSwitchErr := wb.conn.ReadHoldingRegisters(hecRegFirmware, 1)
 	if noSwitchErr == nil {
 		phases := binary.BigEndian.Uint16(b)
-		if (phases == 3 || phases == 1) {
+		if phases == 3 || phases == 1 {
 			log.DEBUG.Println("detected phase switch")
 			phases1p3p = wb.phases1p3p
 		}
