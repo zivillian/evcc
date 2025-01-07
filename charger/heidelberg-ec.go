@@ -30,7 +30,7 @@ import (
 	"github.com/evcc-io/evcc/util/sponsor"
 )
 
-// go:generate go run ../cmd/tools/decorate.go -f decorateHeidelbergEC -b "*HeidelbergEC" -r "api.Charger" -t "api.PhaseSwitcher,Phases1p3p,func(int) error"
+//go:generate decorate -f decorateHeidelbergEC -b *HeidelbergEC -r api.Charger -t "api.PhaseSwitcher,Phases1p3p,func(int) error"
 
 // HeidelbergEC charger implementation
 type HeidelbergEC struct {
