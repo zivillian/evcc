@@ -24,15 +24,15 @@ import (
 	"time"
 
 	"github.com/evcc-io/evcc/api"
+	"github.com/evcc-io/evcc/api/implement"
 	"github.com/evcc-io/evcc/util"
 	"github.com/evcc-io/evcc/util/modbus"
 	"github.com/evcc-io/evcc/util/sponsor"
 )
 
-//go:generate decorate -f decorateHeidelbergEC -b *HeidelbergEC -r api.Charger -t api.PhaseSwitcher
-
 // HeidelbergEC charger implementation
 type HeidelbergEC struct {
+	implement.Caps
 	log     *util.Logger
 	conn    *modbus.Connection
 	current uint16
@@ -93,6 +93,7 @@ func NewHeidelbergEC(ctx context.Context, settings modbus.Settings) (api.Charger
 	conn.Logger(log.TRACE)
 
 	wb := &HeidelbergEC{
+		Caps: implement.New(),
 		log:     log,
 		conn:    conn,
 		current: 60, // assume min current
@@ -112,16 +113,15 @@ func NewHeidelbergEC(ctx context.Context, settings modbus.Settings) (api.Charger
 		go wb.heartbeat(ctx, time.Duration(u)*time.Millisecond)
 	}
 
-	var phases1p3p func(int) error
 	b, noSwitchErr := wb.conn.ReadHoldingRegisters(hecRegFirmware, 1)
 	if noSwitchErr == nil {
 		phases := binary.BigEndian.Uint16(b)
 		if phases == 3 || phases == 1 {
 			log.DEBUG.Println("detected phase switch")
-			phases1p3p = wb.phases1p3p
+			implement.Has(wb, implement.PhaseSwitcher(wb.phases1p3p))
 		}
 	}
-	return decorateHeidelbergEC(wb, phases1p3p), err
+	return wb, nil
 }
 
 func (wb *HeidelbergEC) heartbeat(ctx context.Context, timeout time.Duration) {
