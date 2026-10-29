@@ -93,7 +93,7 @@ func NewHeidelbergEC(ctx context.Context, settings modbus.Settings) (api.Charger
 	conn.Logger(log.TRACE)
 
 	wb := &HeidelbergEC{
-		Caps: implement.New(),
+		Caps:    implement.New(),
 		log:     log,
 		conn:    conn,
 		current: 60, // assume min current
@@ -119,6 +119,7 @@ func NewHeidelbergEC(ctx context.Context, settings modbus.Settings) (api.Charger
 		if phases == 3 || phases == 1 {
 			log.DEBUG.Println("detected phase switch")
 			implement.Has(wb, implement.PhaseSwitcher(wb.phases1p3p))
+			implement.Has(wb, implement.PhaseGetter(wb.getPhases))
 		}
 	}
 	return wb, nil
@@ -343,4 +344,20 @@ func (wb *HeidelbergEC) WakeUp() error {
 func (wb *HeidelbergEC) phases1p3p(phases int) error {
 	_, err := wb.conn.WriteSingleRegister(hecRegFirmware, uint16(phases))
 	return err
+}
+
+// getPhases implements the api.PhaseGetter interface
+func (wb *HeidelbergEC) getPhases() (int, error) {
+	b, err := wb.conn.ReadHoldingRegisters(hecRegFirmware, 1)
+	if err != nil {
+		return 0, err
+	}
+
+	// the switch reports its phase setpoint, which it enforces against contactor feedback and voltages
+	switch phases := binary.BigEndian.Uint16(b); phases {
+	case 1, 3:
+		return int(phases), nil
+	default:
+		return 0, api.ErrNotAvailable
+	}
 }
